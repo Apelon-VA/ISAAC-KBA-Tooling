@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+<!-- Version 2014/07/20 -->
+<!-- 
+	Changelog:
+	2014/07/20 - Initial version
+ -->
+
+	<xs:element name="ISAACKnowledgeArtifactDescriptor">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="knowledgeArtifactType" minOccurs="1" maxOccurs="1" type="KnowledgeArtifactType">
+					<xs:annotation>
+						<xs:documentation source="description">
+							Specifies the type of artifact this is.  Currently, one of 'EConcept', 'KIE' (Drools) or 'CDSKnowledgeArtifact'
+						</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="runtimeDependencies" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="runtimeDependency" minOccurs="0" maxOccurs="unbounded" type="RuntimeDependency" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:simpleType name="KnowledgeArtifactType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="EConcept" />
+			<xs:enumeration value="KIE" />
+			<xs:enumeration value="CDSKnowledgeArtifact" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:complexType name="RuntimeDependency">
+		<xs:all>
+			<xs:element name="groupId" minOccurs="1" type="xs:string">
+				<xs:annotation>
+					<xs:documentation source="description">
+						The project group that produced the dependency, e.g.
+						&lt;code&gt;org.apache.maven&lt;/code&gt;.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="artifactId" minOccurs="1" type="xs:string">
+				<xs:annotation>
+					<xs:documentation source="description">
+						The unique id for an artifact produced by the project group, e.g.
+						&lt;code&gt;maven-artifact&lt;/code&gt;.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="version" minOccurs="1" type="xs:string">
+				<xs:annotation>
+					<xs:documentation source="description">
+						The version of the dependency, e.g. &lt;code&gt;3.2.1&lt;/code&gt;. This can also be
+						specified as a range of versions.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="type" minOccurs="0" type="xs:string" default="jar">
+				<xs:annotation>
+					<xs:documentation source="description">
+						The type of dependency.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="classifier" minOccurs="0" type="xs:string">
+				<xs:annotation>
+					<xs:documentation source="description">
+						The classifier of the dependency. This allows distinguishing two artifacts that belong to the
+						same POM but
+						were built differently, and is appended to the filename after the version. For example,
+						&lt;code&gt;jdk14&lt;/code&gt; and
+						&lt;code&gt;jdk15&lt;/code&gt;.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+</xs:schema>
