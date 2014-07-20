@@ -18,7 +18,9 @@
  */
 package gov.va.knowledgeArtifacts.publisher;
 
+import gov.va.isaac.AppContext;
 import gov.va.isaac.gui.util.ErrorMarkerUtils;
+import gov.va.isaac.interfaces.gui.CommonDialogsI;
 import gov.va.isaac.util.UpdateableBooleanBinding;
 import java.io.File;
 import java.util.Arrays;
@@ -41,6 +43,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.apache.maven.pom._4_0.Model;
+import org.apache.maven.pom._4_0.Organization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +79,9 @@ public class PublisherController
 	
 	
 	private File projectFolder_ = null;
-	UpdateableBooleanBinding projectFolderValid, dataFilesValid, dataTypeValid, nameValid, descriptionValid, groupIdValid,  artifactIdValid, versionValid, 
+	private Model model_;
+	
+	private UpdateableBooleanBinding projectFolderValid, dataFilesValid, dataTypeValid, nameValid, descriptionValid, groupIdValid,  artifactIdValid, versionValid, 
 		allRequiredReady;
 
 	@FXML
@@ -100,7 +106,7 @@ public class PublisherController
 		assert artifactId != null : "fx:id=\"artifactId\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert dataFiles != null : "fx:id=\"dataFiles\" was not injected: check your FXML file 'Publisher.fxml'.";
 
-		for (KnowledgeArtifactTypes type : KnowledgeArtifactTypes.values())
+		for (KnowledgeArtifactType type : KnowledgeArtifactType.values())
 		{
 			dataType.getItems().add(type.getNiceName());
 		}
@@ -186,7 +192,7 @@ public class PublisherController
 			{
 				if (projectFolder_ == null)
 				{
-					setInvalidReason("The Project Folder field is required");
+					setInvalidReason("The Model Folder field is required");
 					return false;
 				}
 				else
@@ -280,8 +286,9 @@ public class PublisherController
 		publish.disableProperty().bind(allRequiredReady.not());
 		sp = ErrorMarkerUtils.swapHBoxComponents(publish, new StackPane(), bottomBox);
 		ErrorMarkerUtils.setupDisabledInfoMarker(publish, sp, allRequiredReady.getReasonWhyInvalid());
+		
+		save.setOnAction((actionEvent) -> {save();});
 	}
-
 	private void addUnique(List<File> files)
 	{
 		HashSet<String> current = new HashSet<>();
@@ -300,11 +307,77 @@ public class PublisherController
 		}
 	}
 	
+	private void save()
+	{
+		KnowledgeArtifactType type = KnowledgeArtifactType.parse(dataType.getValue());
+		//TODO data files
+		if (type == null)
+		{
+			dataType.getValue();
+		}
+		else
+		{
+			//TODO where to put
+			type.getClassifier();
+		}
+		
+		model_.setName(name.getText());
+		model_.setDescription(description.getText());
+		model_.setUrl(url.getText());
+		model_.setGroupId(groupId.getText());
+		model_.setArtifactId(artifactId.getText());
+		model_.setVersion(version.getText());
+		Organization o = new Organization();
+		o.setName(orgName.getText());
+		o.setUrl(orgUrl.getText());
+		model_.setOrganization(o);
+		
+		try
+		{
+			PomHandler.writeFile(model_, projectFolder_);
+		}
+		catch (Exception e)
+		{
+			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog(e.getMessage(), e);
+		}
+	}
+	
 	private void readProjectFolder(File file)
 	{
 		projectFolder_ = file;
 		log.info("Reading project folder " + projectFolder_.getAbsolutePath() );
 		projectFolder.setText(projectFolder_.getAbsolutePath());
+		try
+		{
+			model_ = PomHandler.readOrCreateBlank(projectFolder_);
+			
+			name.setText(convertNull(model_.getName()));
+			description.setText(convertNull(model_.getDescription()));
+			url.setText(convertNull(model_.getUrl()));
+			groupId.setText(convertNull(model_.getGroupId()));
+			artifactId.textProperty().unbind();
+			artifactId.setText(convertNull(artifactId.getText()));
+			version.setText(convertNull(model_.getVersion()));
+			if (model_.getOrganization() != null)
+			{
+				orgName.setText(convertNull(model_.getOrganization().getName()));
+				orgUrl.setText(convertNull(model_.getOrganization().getUrl()));
+			}
+		}
+		catch (Exception e)
+		{
+			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog("There was an error reading the existing pom file.  You may continue"
+					+ " but the existing file will be completely overwritten upon save or publish", e);
+		}
+	}
+	
+	private String convertNull(String input)
+	{
+		if (input == null)
+		{
+			return "";
+		}
+		return input;
 	}
 	
 	private UpdateableBooleanBinding setupSimpleValidator(TextInputControl tic, String invalidReason)

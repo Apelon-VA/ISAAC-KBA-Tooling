@@ -19,24 +19,48 @@
 package gov.va.knowledgeArtifacts.publisher;
 
 /**
- * {@link KnowledgeArtifactTypes}
+ * {@link KnowledgeArtifactType}
  *
  * @author <a href="mailto:daniel.armbrust.list@gmail.com">Dan Armbrust</a> 
  */
-public enum KnowledgeArtifactTypes
+public enum KnowledgeArtifactType
 {
-	EConcept("ISAAC EConcept Format"),ChangeSet("ISAAC Changeset Format"), KIE("Knowledge Is Everything (Drools)"), 
-	CDSKnowledgeArtifact("CDS Knowledge Artifact"), RF2("Release Format 2"), OWL("Web Ontology Language");
+	EConcept("ISAAC EConcept Format", "ec"),ChangeSet("ISAAC Changeset Format", "ec_cs"), KIE("Knowledge Is Everything (Drools)", "kie"), 
+	CDSKnowledgeArtifact("CDS Knowledge Artifact", "cds_ka"), RF2("Release Format 2", "RF2"), OWL("Web Ontology Language", "owl");
 	
 	private String niceName_;
+	private String classifier_;
 	
-	private KnowledgeArtifactTypes(String description)
+	private KnowledgeArtifactType(String description, String classifier)
 	{
 		niceName_ = description;
+		classifier_ = classifier;
 	}
 	
 	public String getNiceName()
 	{
 		return niceName_;
+	}
+	
+	public String getClassifier()
+	{
+		return classifier_;
+	}
+	
+	public static KnowledgeArtifactType parse(String value)
+	{
+		if (value == null)
+		{
+			return null;
+		}
+		for (KnowledgeArtifactType type : KnowledgeArtifactType.values())
+		{
+			if (value.toLowerCase().equals(type.name().toLowerCase()) || value.toLowerCase().equals(type.getNiceName().toLowerCase()) ||
+					value.toLowerCase().equals(type.getClassifier().toLowerCase()))
+			{
+				return type;
+			}
+		}
+		return null;
 	}
 }

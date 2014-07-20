@@ -18,11 +18,17 @@
  */
 package gov.va.knowledgeArtifacts.publisher;
 
+import gov.va.isaac.AppContext;
+import gov.va.isaac.interfaces.gui.ApplicationWindowI;
+import gov.va.isaac.interfaces.gui.views.DockedViewI;
+import gov.va.isaac.interfaces.utility.ShutdownBroadcastListenerI;
+import java.io.IOException;
 import java.net.URL;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +37,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:daniel.armbrust.list@gmail.com">Dan Armbrust</a>
  */
-public class KBAPublisher extends Application
+@Service
+public class KBAPublisher extends Application implements ApplicationWindowI
 {
 	private static Logger log = LoggerFactory.getLogger(KBAPublisher.class);
+	private Stage primaryStage_;
 
-	public static void main(String[] args)
+	public static void main(String[] args) throws ClassNotFoundException, IOException
 	{
+		AppContext.setup();
 		launch(args);
 	}
 
@@ -55,5 +64,33 @@ public class KBAPublisher extends Application
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
 		primaryStage.show();
+		primaryStage_ = primaryStage;
+	}
+
+	/**
+	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#getPrimaryStage()
+	 */
+	@Override
+	public Stage getPrimaryStage()
+	{
+		return primaryStage_;
+	}
+
+	/**
+	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#registerShutdownListener(gov.va.isaac.interfaces.utility.ShutdownBroadcastListenerI)
+	 */
+	@Override
+	public void registerShutdownListener(ShutdownBroadcastListenerI listener)
+	{
+		throw new RuntimeException("Not Implemented");
+	}
+
+	/**
+	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#ensureDockedViewIsVisble(gov.va.isaac.interfaces.gui.views.DockedViewI)
+	 */
+	@Override
+	public void ensureDockedViewIsVisble(DockedViewI view)
+	{
+		throw new RuntimeException("Not Implemented");
 	}
 }
