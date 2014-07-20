@@ -24,32 +24,32 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.ObjectFactory;
 import org.apache.maven.pom._4_0.Model;
-import org.apache.maven.pom._4_0.ObjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link PomHandler}
+ * {@link AssemblyHandler}
  *
  * @author <a href="mailto:daniel.armbrust.list@gmail.com">Dan Armbrust</a>
  */
-public class PomHandler
+public class AssemblyHandler
 {
-	private static Logger log = LoggerFactory.getLogger(PomHandler.class);
+	private static Logger log = LoggerFactory.getLogger(AssemblyHandler.class);
 
-	public static Model read(File projectFolder) throws Exception
+	public static Assembly readOrCreateBlank(File projectFolder) throws Exception
 	{
-		File pom = new File(projectFolder, "pom.xml");
+		File assemblyFile = new File(new File(new File(projectFolder, "src"), "assembly"), "assembly.xml");
 
-		if (pom.isFile())
+		if (assemblyFile.isFile())
 		{
 			try
 			{
-				JAXBContext ctx = JAXBContext.newInstance(Model.class);
+				JAXBContext ctx = JAXBContext.newInstance(Assembly.class);
 				Unmarshaller um = ctx.createUnmarshaller();
-				JAXBElement<Model> element = (JAXBElement<Model>) um.unmarshal(pom);
-				return element.getValue();
+				return ((JAXBElement<Assembly>) um.unmarshal(assemblyFile)).getValue();
 			}
 			catch (Exception e)
 			{
@@ -59,29 +59,36 @@ public class PomHandler
 		}
 		else
 		{
-			if (pom.isDirectory())
+			if (assemblyFile.isDirectory())
 			{
-				throw new Exception("Found a directory named pom.xml, which isnt' supported");
+				throw new RuntimeException("Found a directory named assembly.xml, which isnt' supported");
 			}
-			return new Model();
+			return new Assembly();
 		}
 	}
 
-	public static void writeFile(Model model, File projectFolder) throws Exception
+	public static void writeFile(Assembly assembly, File projectFolder) throws Exception
 	{
 		try
 		{
-			JAXBContext ctx = JAXBContext.newInstance(Model.class);
+			File outputPath = new File(new File(projectFolder, "src"), "assembly");
+			outputPath.mkdirs();
+			if (!outputPath.isDirectory())
+			{
+				throw new Exception("Failed to create the hierarchy for the assembly file");
+			}
+			
+			JAXBContext ctx = JAXBContext.newInstance(Assembly.class);
 			Marshaller ma = ctx.createMarshaller();
-			ma.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd");
+			ma.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd");
 			ma.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			ma.marshal(new ObjectFactory().createProject(model), new File(projectFolder, "pom.xml"));
+			ma.marshal(new ObjectFactory().createAssembly(assembly), new File(outputPath, "assembly.xml"));
 		}
 
 		catch (JAXBException e)
 		{
 			log.error("Error writing", e);
-			throw new Exception("Error writing pom: " + e);
+			throw new Exception("Error writing assembly: " + e);
 		}
 	}
 }

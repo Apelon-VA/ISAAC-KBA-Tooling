@@ -43,8 +43,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.Files;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.Formats;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.FileItem;
+import org.apache.maven.pom._4_0.Build;
+import org.apache.maven.pom._4_0.Build.Plugins;
 import org.apache.maven.pom._4_0.Model;
 import org.apache.maven.pom._4_0.Organization;
+import org.apache.maven.pom._4_0.Plugin;
+import org.apache.maven.pom._4_0.Plugin.Executions;
+import org.apache.maven.pom._4_0.PluginExecution;
+import org.apache.maven.pom._4_0.PluginExecution.Configuration;
+import org.apache.maven.pom._4_0.PluginExecution.Configuration.Descriptors;
+import org.apache.maven.pom._4_0.PluginExecution.Goals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +92,7 @@ public class PublisherController
 	
 	private File projectFolder_ = null;
 	private Model model_;
+	private Assembly assembly_;
 	
 	private UpdateableBooleanBinding projectFolderValid, dataFilesValid, dataTypeValid, nameValid, descriptionValid, groupIdValid,  artifactIdValid, versionValid, 
 		allRequiredReady;
@@ -310,16 +323,34 @@ public class PublisherController
 	private void save()
 	{
 		KnowledgeArtifactType type = KnowledgeArtifactType.parse(dataType.getValue());
-		//TODO data files
+
 		if (type == null)
 		{
-			dataType.getValue();
+			assembly_.setId(dataType.getValue());
 		}
 		else
 		{
-			//TODO where to put
-			type.getClassifier();
+			assembly_.setId(type.getClassifier());
 		}
+		
+		Formats formats = new Formats();
+		formats.getFormat().add("zip");
+		assembly_.setFormats(formats);
+		
+		Files files = new Files();
+		
+		for (File f : dataFiles.getItems())
+		{
+			//TODO handle directories
+			FileItem fileItem = new FileItem();
+			fileItem.setSource(f.getAbsolutePath());
+			files.getFile().add(fileItem);
+		}
+		
+		assembly_.setFiles(files);
+		
+		model_.setModelVersion("4.0.0");
+		model_.setPackaging("pom");
 		
 		model_.setName(name.getText());
 		model_.setDescription(description.getText());
@@ -332,9 +363,43 @@ public class PublisherController
 		o.setUrl(orgUrl.getText());
 		model_.setOrganization(o);
 		
+		Build build = new Build();
+		Plugins plugins = new Plugins();
+		Plugin plugin = new Plugin();
+		plugin.setArtifactId("maven-assembly-plugin");
+		Executions executions = new Executions();
+		PluginExecution execution = new PluginExecution();
+		execution.setId("zip");
+		Goals goals = new Goals();
+		goals.getGoal().add("attached");
+		execution.setGoals(goals);
+		execution.setPhase("package");
+		Configuration configuration = new Configuration();
+		
+		Descriptors descriptors = new Descriptors();
+		descriptors.getDescriptor().add("${basedir}/src/assembly/assembly.xml");
+		configuration.setDescriptors(descriptors);
+		
+//		DocumentImpl documentImpl = new DocumentImpl();
+//		Element descriptors = documentImpl.createElement("descriptors");
+//		descriptors.setTextContent("");
+//		Element descriptor = documentImpl.createElement("descriptor");
+//		descriptor.setTextContent("${basedir}/src/assembly.xml");
+//		descriptors.appendChild(descriptor);
+//		
+//		configuration.getAny().add(descriptors);
+		//TODO configuration
+		execution.setConfiguration(configuration);
+		executions.getExecution().add(execution);
+		plugin.setExecutions(executions);
+		plugins.getPlugin().add(plugin);
+		build.setPlugins(plugins);
+		model_.setBuild(build);
+		
 		try
 		{
 			PomHandler.writeFile(model_, projectFolder_);
+			AssemblyHandler.writeFile(assembly_, projectFolder_);
 		}
 		catch (Exception e)
 		{
@@ -349,7 +414,7 @@ public class PublisherController
 		projectFolder.setText(projectFolder_.getAbsolutePath());
 		try
 		{
-			model_ = PomHandler.readOrCreateBlank(projectFolder_);
+			model_ = PomHandler.read(projectFolder_);
 			
 			name.setText(convertNull(model_.getName()));
 			description.setText(convertNull(model_.getDescription()));
@@ -368,7 +433,42 @@ public class PublisherController
 		{
 			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog("There was an error reading the existing pom file.  You may continue"
 					+ " but the existing file will be completely overwritten upon save or publish", e);
+			model_ = new Model();
 		}
+		try
+		{
+			//TODO this mechanism of handling files won't cope well with aboslute paths and jumping from one system to another...
+			assembly_ = AssemblyHandler.readOrCreateBlank(projectFolder_);
+			
+			KnowledgeArtifactType type = KnowledgeArtifactType.parse(assembly_.getId());
+			if (type != null)
+			{
+				dataType.getSelectionModel().select(type.getNiceName());
+			}
+			else
+			{
+				dataType.setValue(convertNull(assembly_.getId()));
+			}
+			
+			
+			Files files = assembly_.getFiles();
+			dataFiles.getItems().clear();
+			if (files != null)
+			{
+				for (FileItem fi : files.getFile())
+				{
+					dataFiles.getItems().add(new File(fi.getSource()));
+				}
+			}
+			
+		}
+		catch (Exception e)
+		{
+			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog("There was an error reading the existing assembly file.  You may continue"
+					+ " but the existing file will be completely overwritten upon save or publish", e);
+			assembly_ = new Assembly();
+		}
+
 	}
 	
 	private String convertNull(String input)
