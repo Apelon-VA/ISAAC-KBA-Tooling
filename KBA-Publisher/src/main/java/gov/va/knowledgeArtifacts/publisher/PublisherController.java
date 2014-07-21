@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import javafx.beans.binding.BooleanBinding;
@@ -34,14 +35,19 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -74,56 +80,78 @@ import org.slf4j.LoggerFactory;
 public class PublisherController
 {
 	private static Logger log = LoggerFactory.getLogger(PublisherController.class);
-	
-	@FXML private BorderPane root;
+	@FXML private Tab contributorsTab;	
 	@FXML private TextField orgName;
 	@FXML private TextField groupId;
 	@FXML private ComboBox<String> dataType;
+	@FXML private HBox bottomBox;
 	@FXML private Button save;
 	@FXML private TextArea description;
 	@FXML private TextField orgUrl;
 	@FXML private Button addDataFile;
-	@FXML private Button addDataFolder;
 	@FXML private TextField version;
 	@FXML private TextField projectFolder;
 	@FXML private TextField url;
+	@FXML private Button addDataFolder;
 	@FXML private Button projectFolderFileChooser;
+	@FXML private Tab compileDependenciesTab;
+	@FXML private Tab developersTab;
+	@FXML private BorderPane root;
 	@FXML private Button publish;
 	@FXML private TextField name;
+	@FXML private Tab runtimeDependenciesTab;
 	@FXML private Button removeDataFile;
 	@FXML private TextField artifactId;
+	@FXML private GridPane licenseGridPane;
 	@FXML private ListView<File> dataFiles;
-	@FXML private HBox bottomBox;
 	
+	@FXML private Button addLicenseButton;
+	@FXML private Button removeLicenseButton;
 	
 	private File projectFolder_ = null;
 	private Model model_;
 	private Assembly assembly_;
 	
+	private int licenseGridPaneRowCount = 0;
+	
+	private HashMap<String, SpecialFile> specialFiles_ = new HashMap<>();
+	
 	private UpdateableBooleanBinding projectFolderValid, dataFilesValid, dataTypeValid, nameValid, descriptionValid, groupIdValid,  artifactIdValid, versionValid, 
 		allRequiredReady;
-
+	
 	@FXML
 	void initialize()
 	{
-		assert root != null : "fx:id=\"root\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert contributorsTab != null : "fx:id=\"contributorsTab\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert orgName != null : "fx:id=\"orgName\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert groupId != null : "fx:id=\"groupId\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert dataType != null : "fx:id=\"dataType\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert bottomBox != null : "fx:id=\"bottomBox\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert save != null : "fx:id=\"save\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert description != null : "fx:id=\"description\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert orgUrl != null : "fx:id=\"orgUrl\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert addDataFile != null : "fx:id=\"addDataFile\" was not injected: check your FXML file 'Publisher.fxml'.";
-		assert addDataFolder != null : "fx:id=\"addDataFolder\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert version != null : "fx:id=\"version\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert projectFolder != null : "fx:id=\"projectFolder\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert url != null : "fx:id=\"url\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert addDataFolder != null : "fx:id=\"addDataFolder\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert projectFolderFileChooser != null : "fx:id=\"projectFolderFileChooser\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert compileDependenciesTab != null : "fx:id=\"compileDependenciesTab\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert developersTab != null : "fx:id=\"developersTab\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert root != null : "fx:id=\"root\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert publish != null : "fx:id=\"publish\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert name != null : "fx:id=\"name\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert runtimeDependenciesTab != null : "fx:id=\"runtimeDependenciesTab\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert removeDataFile != null : "fx:id=\"removeDataFile\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert artifactId != null : "fx:id=\"artifactId\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert licenseGridPane != null : "fx:id=\"licenseTab\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert dataFiles != null : "fx:id=\"dataFiles\" was not injected: check your FXML file 'Publisher.fxml'.";
+		
+		assert addLicenseButton != null : "fx:id=\"addLicenseButton\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert removeLicenseButton != null : "fx:id=\"removeLicenseButton\" was not injected: check your FXML file 'Publisher.fxml'.";
+
+
+		
 
 		for (KnowledgeArtifactType type : KnowledgeArtifactType.values())
 		{
@@ -307,6 +335,13 @@ public class PublisherController
 		ErrorMarkerUtils.setupDisabledInfoMarker(publish, sp, allRequiredReady.getReasonWhyInvalid());
 		
 		save.setOnAction((actionEvent) -> {save();});
+		
+		addLicenseButton.setOnAction((actionEvent) -> {licenseTabAddBlankRow();});
+		
+		licenseGridPane.getChildren().clear();
+		licenseGridPane.getRowConstraints().clear();
+		licenseTabAddBlankRow();
+		
 	}
 	private void addUnique(List<File> files)
 	{
@@ -365,29 +400,14 @@ public class PublisherController
 		
 		//The code that puts the pom and other things in the zip file
 		
-		
-		FileItem fi = new FileItem();
-		fi.setSource("${basedir}/pom.xml");
-		fi.setOutputDirectory("META-INF/maven/${groupId}/${artifactId}/");
-		files.getFile().add(fi);
-		
-		fi = new FileItem();
-		fi.setSource("${basedir}/src/assembly/assembly.xml");
-		fi.setOutputDirectory("META-INF/maven/${groupId}/${artifactId}/src/assembly/assembly.xml");
-		files.getFile().add(fi);
-		
-		
-		fi = new FileItem();
-		fi.setSource("${basedir}/LICENSE.txt");
-		fi.setOutputDirectory("META-INF/");
-		fi.setFiltered(true);
-		files.getFile().add(fi);
-		
-		fi = new FileItem();
-		fi.setSource("${basedir}/MANIFEST.MF");
-		fi.setOutputDirectory("META-INF/");
-		fi.setFiltered(true);
-		files.getFile().add(fi);
+		for (SpecialFile sf : SpecialFile.SPECIAL_FILES)
+		{
+			FileItem fi = new FileItem();
+			fi.setSource(sf.getSource());
+			fi.setOutputDirectory(sf.getOutputDirectory());
+			fi.setFiltered(sf.filter());
+			files.getFile().add(fi);
+		}
 		
 		assembly_.setFiles(files);
 		assembly_.setFileSets(fileSets);
@@ -515,12 +535,20 @@ public class PublisherController
 			{
 				for (FileItem fi : files.getFile())
 				{
-					if (fi.getSource().equals("${basedir}/pom.xml") || fi.getSource().equals("${basedir}/src/assembly/assembly.xml")
-							|| fi.getSource().equals("${basedir}/LICENSE.txt") || fi.getSource().equals("${basedir}/MANIFEST.MF"))
+					boolean skip = false;
+					for (SpecialFile sf : SpecialFile.SPECIAL_FILES)
 					{
-						continue;
+						if (sf.getSource().equals(fi.getSource()))
+						{
+							skip = true;
+							break;
+						}
 					}
-					dataFiles.getItems().add(new File(fi.getSource()));
+					
+					if (!skip)
+					{
+						dataFiles.getItems().add(new File(fi.getSource()));
+					}
 				}
 			}
 			
@@ -583,7 +611,7 @@ public class PublisherController
 		sb.append("Name:  ${project.licenses[0].name}");
 		sb.append("\r\n");
 		
-		java.nio.file.Files.write(new File(projectFolder_, "LICENSE.txt").toPath(), sb.toString().getBytes(), 
+		java.nio.file.Files.write(new File(new File(new File(projectFolder_, "src"), "assembly"), "LICENSE.txt").toPath(), sb.toString().getBytes(), 
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 	
@@ -604,7 +632,33 @@ public class PublisherController
 		sb.append("Implementation-Vendor: ${project.organization.name}");
 		sb.append("\r\n");
 		
-		java.nio.file.Files.write(new File(projectFolder_, "MANIFEST.MF").toPath(), sb.toString().getBytes(), 
+		java.nio.file.Files.write(new File(new File(new File(projectFolder_, "src"), "assembly"), "MANIFEST.MF").toPath(), sb.toString().getBytes(), 
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
+	
+	private void licenseTabAddBlankRow()
+	{
+		licenseGridPane.add(new Label("License Name"), 0, licenseGridPaneRowCount);
+		licenseGridPane.add(new TextField(), 1, licenseGridPaneRowCount++);
+		RowConstraints rc = new RowConstraints(Control.USE_PREF_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+		rc.setFillHeight(false);
+		rc.setVgrow(Priority.NEVER);
+		licenseGridPane.getRowConstraints().add(rc);
+		
+		licenseGridPane.add(new Label("License URL"), 0, licenseGridPaneRowCount);
+		licenseGridPane.add(new TextField(), 1, licenseGridPaneRowCount++);
+		rc = new RowConstraints(Control.USE_PREF_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+		rc.setFillHeight(false);
+		rc.setVgrow(Priority.NEVER);
+		licenseGridPane.getRowConstraints().add(rc);
+		
+		licenseGridPane.add(new Label("License Comments"), 0, licenseGridPaneRowCount);
+		TextArea area = new TextArea();
+		area.setWrapText(true);
+		area.setPrefHeight(100);
+		licenseGridPane.add(area, 1, licenseGridPaneRowCount++);
+		rc = new RowConstraints(Control.USE_PREF_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
+		rc.setFillHeight(false);
+		rc.setVgrow(Priority.NEVER);
+		licenseGridPane.getRowConstraints().add(rc);	}
 }
