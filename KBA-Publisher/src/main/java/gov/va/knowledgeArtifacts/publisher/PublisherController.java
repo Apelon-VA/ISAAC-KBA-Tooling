@@ -23,6 +23,8 @@ import gov.va.isaac.gui.util.ErrorMarkerUtils;
 import gov.va.isaac.interfaces.gui.CommonDialogsI;
 import gov.va.isaac.util.UpdateableBooleanBinding;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -44,12 +46,16 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.FileSets;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.Files;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.Formats;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.FileItem;
+import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.FileSet;
 import org.apache.maven.pom._4_0.Build;
 import org.apache.maven.pom._4_0.Build.Plugins;
+import org.apache.maven.pom._4_0.License;
 import org.apache.maven.pom._4_0.Model;
+import org.apache.maven.pom._4_0.Model.Licenses;
 import org.apache.maven.pom._4_0.Organization;
 import org.apache.maven.pom._4_0.Plugin;
 import org.apache.maven.pom._4_0.Plugin.Executions;
@@ -338,16 +344,53 @@ public class PublisherController
 		assembly_.setFormats(formats);
 		
 		Files files = new Files();
+		FileSets fileSets = new FileSets();
 		
 		for (File f : dataFiles.getItems())
 		{
-			//TODO handle directories
-			FileItem fileItem = new FileItem();
-			fileItem.setSource(f.getAbsolutePath());
-			files.getFile().add(fileItem);
+			if (f.isFile())
+			{
+				FileItem fileItem = new FileItem();
+				fileItem.setSource(f.getAbsolutePath());
+				files.getFile().add(fileItem);
+			}
+			else
+			{  //directory
+				FileSet fs = new FileSet();
+				fs.setDirectory(f.getAbsolutePath());
+				fs.setOutputDirectory(f.getName());
+				fileSets.getFileSet().add(fs);
+			}
 		}
 		
+		//The code that puts the pom and other things in the zip file
+		
+		
+		FileItem fi = new FileItem();
+		fi.setSource("${basedir}/pom.xml");
+		fi.setOutputDirectory("META-INF/maven/${groupId}/${artifactId}/");
+		files.getFile().add(fi);
+		
+		fi = new FileItem();
+		fi.setSource("${basedir}/src/assembly/assembly.xml");
+		fi.setOutputDirectory("META-INF/maven/${groupId}/${artifactId}/src/assembly/assembly.xml");
+		files.getFile().add(fi);
+		
+		
+		fi = new FileItem();
+		fi.setSource("${basedir}/LICENSE.txt");
+		fi.setOutputDirectory("META-INF/");
+		fi.setFiltered(true);
+		files.getFile().add(fi);
+		
+		fi = new FileItem();
+		fi.setSource("${basedir}/MANIFEST.MF");
+		fi.setOutputDirectory("META-INF/");
+		fi.setFiltered(true);
+		files.getFile().add(fi);
+		
 		assembly_.setFiles(files);
+		assembly_.setFileSets(fileSets);
 		
 		model_.setModelVersion("4.0.0");
 		model_.setPackaging("pom");
@@ -362,6 +405,19 @@ public class PublisherController
 		o.setName(orgName.getText());
 		o.setUrl(orgUrl.getText());
 		model_.setOrganization(o);
+		
+		
+		//TODO finish license
+		Licenses licenses = new Licenses();
+		License license = new License(); 
+		license.setComments("my comments");
+		license.setDistribution("foo");
+		license.setName("mine");
+		licenses.getLicense().add(license);
+		
+		model_.setLicenses(licenses);
+		
+		
 		
 		Build build = new Build();
 		Plugins plugins = new Plugins();
@@ -379,16 +435,7 @@ public class PublisherController
 		Descriptors descriptors = new Descriptors();
 		descriptors.getDescriptor().add("${basedir}/src/assembly/assembly.xml");
 		configuration.setDescriptors(descriptors);
-		
-//		DocumentImpl documentImpl = new DocumentImpl();
-//		Element descriptors = documentImpl.createElement("descriptors");
-//		descriptors.setTextContent("");
-//		Element descriptor = documentImpl.createElement("descriptor");
-//		descriptor.setTextContent("${basedir}/src/assembly.xml");
-//		descriptors.appendChild(descriptor);
-//		
-//		configuration.getAny().add(descriptors);
-		//TODO configuration
+
 		execution.setConfiguration(configuration);
 		executions.getExecution().add(execution);
 		plugin.setExecutions(executions);
@@ -400,6 +447,9 @@ public class PublisherController
 		{
 			PomHandler.writeFile(model_, projectFolder_);
 			AssemblyHandler.writeFile(assembly_, projectFolder_);
+			
+			writeLicenseFile();
+			writeManifestFile();
 		}
 		catch (Exception e)
 		{
@@ -437,7 +487,7 @@ public class PublisherController
 		}
 		try
 		{
-			//TODO this mechanism of handling files won't cope well with aboslute paths and jumping from one system to another...
+			//TODO this mechanism of handling files won't cope well with absolute paths and jumping from one system to another...
 			assembly_ = AssemblyHandler.readOrCreateBlank(projectFolder_);
 			
 			KnowledgeArtifactType type = KnowledgeArtifactType.parse(assembly_.getId());
@@ -449,14 +499,27 @@ public class PublisherController
 			{
 				dataType.setValue(convertNull(assembly_.getId()));
 			}
-			
+
+			dataFiles.getItems().clear();
+			FileSets fileSets = assembly_.getFileSets();
+			if (fileSets != null)
+			{
+				for (FileSet fs : fileSets.getFileSet())
+				{
+					dataFiles.getItems().add(new File(fs.getDirectory()));
+				}
+			}
 			
 			Files files = assembly_.getFiles();
-			dataFiles.getItems().clear();
 			if (files != null)
 			{
 				for (FileItem fi : files.getFile())
 				{
+					if (fi.getSource().equals("${basedir}/pom.xml") || fi.getSource().equals("${basedir}/src/assembly/assembly.xml")
+							|| fi.getSource().equals("${basedir}/LICENSE.txt") || fi.getSource().equals("${basedir}/MANIFEST.MF"))
+					{
+						continue;
+					}
 					dataFiles.getItems().add(new File(fi.getSource()));
 				}
 			}
@@ -510,5 +573,38 @@ public class PublisherController
 		StackPane sp = ErrorMarkerUtils.swapGridPaneComponents(tic, new StackPane(), (GridPane)tic.getParent());
 		ErrorMarkerUtils.setupErrorMarker(tic, sp, ubb.getReasonWhyInvalid());
 		return ubb;
+	}
+	
+	private void writeLicenseFile() throws IOException
+	{
+		//TODO loop, finish
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Name:  ${project.licenses[0].name}");
+		sb.append("\r\n");
+		
+		java.nio.file.Files.write(new File(projectFolder_, "LICENSE.txt").toPath(), sb.toString().getBytes(), 
+				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+	}
+	
+	private void writeManifestFile() throws IOException
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Manifest-Version: 1.0");
+		sb.append("\r\n");
+		sb.append("Created-By: ${java.version} (${java.vendor})");
+		sb.append("\r\n");
+		sb.append("Implementation-Title: ${project.name}");
+		sb.append("\r\n");
+		sb.append("Implementation-Version: ${project.version}");
+		sb.append("\r\n");
+		sb.append("Implementation-Vendor-Id: ${project.groupId}");
+		sb.append("\r\n");
+		sb.append("Implementation-Vendor: ${project.organization.name}");
+		sb.append("\r\n");
+		
+		java.nio.file.Files.write(new File(projectFolder_, "MANIFEST.MF").toPath(), sb.toString().getBytes(), 
+				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 }

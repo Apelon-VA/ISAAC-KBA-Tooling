@@ -26,7 +26,6 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.ObjectFactory;
-import org.apache.maven.pom._4_0.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +38,7 @@ public class AssemblyHandler
 {
 	private static Logger log = LoggerFactory.getLogger(AssemblyHandler.class);
 
+	@SuppressWarnings("unchecked")
 	public static Assembly readOrCreateBlank(File projectFolder) throws Exception
 	{
 		File assemblyFile = new File(new File(new File(projectFolder, "src"), "assembly"), "assembly.xml");

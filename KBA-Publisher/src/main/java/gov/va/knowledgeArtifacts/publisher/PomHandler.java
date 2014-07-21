@@ -48,6 +48,7 @@ public class PomHandler
 			{
 				JAXBContext ctx = JAXBContext.newInstance(Model.class);
 				Unmarshaller um = ctx.createUnmarshaller();
+				@SuppressWarnings("unchecked")
 				JAXBElement<Model> element = (JAXBElement<Model>) um.unmarshal(pom);
 				return element.getValue();
 			}
