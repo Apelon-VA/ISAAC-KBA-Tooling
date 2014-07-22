@@ -188,18 +188,20 @@ public class Publish extends Task<Integer>
 		updateStatus("Creating Metadata File");
 		writeMetadataFile(zipFile.getParentFile());
 
-		updateStatus("Uploading pom files");
-		putFile(pomFile);
-		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"));
-		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"));
-		updateStatus("Uploading metadata files");
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"));
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"));
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"));
 		updateStatus("Uploading data files");
 		putFile(zipFile);
 		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"));
 		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"));
+		
+		updateStatus("Uploading pom files");
+		putFile(pomFile);
+		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"));
+		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"));
+		
+		updateStatus("Uploading metadata files");
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"));
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"));
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"));
 
 		log.debug("Cleaning up temp files");
 		Files.walkFileTree(zipFile.getParentFile().toPath(), new SimpleFileVisitor<Path>()
