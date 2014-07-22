@@ -27,6 +27,7 @@ import java.net.URL;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -59,10 +60,11 @@ public class KBAPublisher extends Application implements ApplicationWindowI
 		log.debug("FXML for " + KBAPublisher.class + ": " + resource);
 		FXMLLoader loader = new FXMLLoader(resource);
 		loader.load();
-		//loader.getController();
+		primaryStage.setTitle("ISAAC Knowledge Base Artifact Publisher");
 		primaryStage.setScene(new Scene(loader.getRoot()));
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
+		primaryStage.getIcons().add(new Image("/images/silk-icons/src/main/resources/silk/16x16/package_green.png"));
 		primaryStage.show();
 		primaryStage_ = primaryStage;
 	}

@@ -49,6 +49,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -696,6 +697,8 @@ public class PublisherController
 			Scene scene = new Scene(loader.getRoot());
 			Stage stage = new Stage(StageStyle.DECORATED);
 			stage.setScene(scene);
+			stage.setTitle("ISSAC KBA Publisher - Upload");
+			stage.getIcons().add(new Image("/images/silk-icons/src/main/resources/silk/16x16/package_go.png"));
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.initOwner(root.getScene().getWindow());
 			uc.finishInit(model_, assembly_.getId(), projectFolder_, dataFiles.getItems());
