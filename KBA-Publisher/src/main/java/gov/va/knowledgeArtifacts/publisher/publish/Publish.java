@@ -74,7 +74,7 @@ public class Publish extends Task<Integer>
 		password_ = password;
 	}
 
-	private void writeChecksumFile(File file, String type, File toFolder) throws NoSuchAlgorithmException, IOException
+	private void writeChecksumFile(File file, String type, File toFolder, String targetName) throws NoSuchAlgorithmException, IOException
 	{
 		MessageDigest md = MessageDigest.getInstance(type);
 		try (InputStream is = Files.newInputStream(file.toPath()))
@@ -90,7 +90,8 @@ public class Publish extends Task<Integer>
 		byte[] digest = md.digest();
 		String checkSum = new BigInteger(1, digest).toString(16);
 
-		Files.write(new File(toFolder, file.getName() + "." + type.toLowerCase()).toPath(), (checkSum + "  " + file.getName()).getBytes(), StandardOpenOption.WRITE,
+		Files.write(new File(toFolder, file.getName() + "." + type.toLowerCase()).toPath(), 
+				(checkSum + "  " + (targetName == null ? file.getName() : targetName)).getBytes(), StandardOpenOption.WRITE,
 				StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
@@ -111,14 +112,14 @@ public class Publish extends Task<Integer>
 		sb.append("\r\n");
 		File file = new File(toFolder, "maven-metadata.xml");
 		Files.write(file.toPath(), sb.toString().getBytes(), StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-		writeChecksumFile(file, "MD5", toFolder);
-		writeChecksumFile(file, "SHA1", toFolder);
+		writeChecksumFile(file, "MD5", toFolder, null);
+		writeChecksumFile(file, "SHA1", toFolder, null);
 	}
 
-	private void putFile(File file) throws Exception
+	private void putFile(File file, String targetFileName) throws Exception
 	{
 		URL url = new URL(url_ + (url_.endsWith("/") ? "" : "/") + model_.getGroupId() + "/" + model_.getArtifactId() + "/" + model_.getVersion()
-				+ "/" + file.getName());
+				+ "/" + (targetFileName == null ? file.getName() : targetFileName));
 
 		log.info("Uploading " + file.getAbsolutePath() + " to " + url.toString());
 
@@ -181,27 +182,27 @@ public class Publish extends Task<Integer>
 		File pomFile = new File(projectFolder_, "pom.xml");
 
 		updateStatus("Creating Checksum Files");
-		writeChecksumFile(pomFile, "MD5", zipFile.getParentFile());
-		writeChecksumFile(pomFile, "SHA1", zipFile.getParentFile());
-		writeChecksumFile(zipFile, "MD5", zipFile.getParentFile());
-		writeChecksumFile(zipFile, "SHA1", zipFile.getParentFile());
+		writeChecksumFile(pomFile, "MD5", zipFile.getParentFile(), model_.getName() + "-" + model_.getVersion() + ".pom.md5");
+		writeChecksumFile(pomFile, "SHA1", zipFile.getParentFile(), model_.getName() + "-" + model_.getVersion() + ".pom.sha1");
+		writeChecksumFile(zipFile, "MD5", zipFile.getParentFile(), null);
+		writeChecksumFile(zipFile, "SHA1", zipFile.getParentFile(), null);
 		updateStatus("Creating Metadata File");
 		writeMetadataFile(zipFile.getParentFile());
 
 		updateStatus("Uploading data files");
-		putFile(zipFile);
-		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"));
-		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"));
+		putFile(zipFile, null);
+		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"), null);
+		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"), null);
 		
 		updateStatus("Uploading pom files");
-		putFile(pomFile);
-		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"));
-		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"));
+		putFile(pomFile, model_.getName() + "-" + model_.getVersion() + ".pom");
+		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"), model_.getName() + "-" + model_.getVersion() + ".pom.md5");
+		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"), model_.getName() + "-" + model_.getVersion() + ".pom.sha1");
 		
 		updateStatus("Uploading metadata files");
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"));
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"));
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"));
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"), null);
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"), null);
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"), null);
 
 		log.debug("Cleaning up temp files");
 		Files.walkFileTree(zipFile.getParentFile().toPath(), new SimpleFileVisitor<Path>()
