@@ -27,7 +27,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -128,51 +127,45 @@ public class PublishDialogController
 	
 	private void publish() throws Exception
 	{
-		//TODO add proper handling of progress bar, status output.
 		publishButton.disableProperty().unbind();
 		publishButton.setDisable(true);
 		progressBar.setVisible(true);
 		status.setVisible(true);
 		status.setText("Publishing...");
-		
-		Task<Integer> task = new Task<Integer>()
+
+		Publish task = new Publish(model_, classifier_, projectFolder_, dataFiles_, url.getText(), username.getText(), password.getText());
+		task.setOnSucceeded((event) -> 
 		{
-			{
-				updateProgress(-1, 50);
-			}
-			@Override
-			protected Integer call() throws Exception
-			{
-				try
-				{
-					Publish.doPublish(model_, classifier_, projectFolder_, dataFiles_, url.getText(), username.getText(), password.getText());
-					
-					Platform.runLater(() -> 
-					{
-						status.setText("Completed");
-					});
-				}
-				catch (Exception e)
-				{
-					Platform.runLater(() -> 
-					{
-						status.setText("Error Publishing!  " + e.toString());
-					});
-				}
-				Platform.runLater(() -> 
-				{
-					progressBar.progressProperty().unbind();
-					progressBar.setProgress(1.0);
-					publishButton.disableProperty().bind(urlValid.not());
-				});
-				
-				return 0;
-			}
-		};
+			taskComplete(task);
+		});
+		
+		task.setOnFailed((event) -> 
+		{
+			taskComplete(task);
+		});
 		
 		progressBar.progressProperty().bind(task.progressProperty());
+		status.textProperty().bind(task.messageProperty());
 		
 		Thread th = new Thread(task);
 		th.start();
+	}
+	
+	protected void taskComplete(Task<?> task)
+	{
+		status.textProperty().unbind();
+		
+		if (task.getException() != null)
+		{
+			status.setText(status.getText() + "\r\nFailed:  " + task.getException().toString());
+		}
+		else
+		{
+			status.setText(status.getText() + "\r\nComplete");
+		}
+		
+		progressBar.progressProperty().unbind();
+		progressBar.setProgress(1.0);
+		publishButton.disableProperty().bind(urlValid.not());
 	}
 }

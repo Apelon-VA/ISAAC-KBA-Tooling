@@ -39,6 +39,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
+import javafx.concurrent.Task;
 import org.apache.maven.pom._4_0.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,54 +49,32 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:daniel.armbrust.list@gmail.com">Dan Armbrust</a>
  */
-public class Publish
+public class Publish extends Task<Integer>
 {
 	private static Logger log = LoggerFactory.getLogger(Publish.class);
 
-	public static void doPublish(Model model, String classifier, File projectFolder, List<File> dataFiles, String url, String username, String password) throws Exception
+	Model model_;
+	String classifier_;
+	File projectFolder_;
+	List<File> dataFiles_;
+	String url_;
+	String username_;
+	String password_;
+	
+	StringBuilder status_ = new StringBuilder();
+	
+	public Publish(Model model, String classifier, File projectFolder, List<File> dataFiles, String url, String username, String password) throws Exception
 	{
-		Zip zip = new Zip();
-		File zipFile = zip.createZipFile(model, classifier, projectFolder, dataFiles);
-		log.info("Wrote " + zipFile);
-
-		File pomFile = new File(projectFolder, "pom.xml");
-
-		writeChecksumFile(pomFile, "MD5", zipFile.getParentFile());
-		writeChecksumFile(pomFile, "SHA1", zipFile.getParentFile());
-		writeChecksumFile(zipFile, "MD5", zipFile.getParentFile());
-		writeChecksumFile(zipFile, "SHA1", zipFile.getParentFile());
-		writeMetadataFile(model, zipFile.getParentFile());
-
-		putFile(pomFile, model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"), model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"), model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"), model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"), model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"), model, url, username, password);
-		putFile(zipFile, model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"), model, url, username, password);
-		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"), model, url, username, password);
-
-		log.debug("Cleaning up temp files");
-		Files.walkFileTree(zipFile.getParentFile().toPath(), new SimpleFileVisitor<Path>()
-		{
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-			{
-				Files.delete(file);
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException
-			{
-				Files.delete(dir);
-				return FileVisitResult.CONTINUE;
-			}
-		});
+		model_ = model;
+		classifier_ = classifier;
+		projectFolder_ = projectFolder;
+		dataFiles_ = dataFiles;
+		url_ = url;
+		username_ = username;
+		password_ = password;
 	}
 
-	private static void writeChecksumFile(File file, String type, File toFolder) throws NoSuchAlgorithmException, IOException
+	private void writeChecksumFile(File file, String type, File toFolder) throws NoSuchAlgorithmException, IOException
 	{
 		MessageDigest md = MessageDigest.getInstance(type);
 		try (InputStream is = Files.newInputStream(file.toPath()))
@@ -115,18 +94,18 @@ public class Publish
 				StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
-	private static void writeMetadataFile(Model model, File toFolder) throws IOException, NoSuchAlgorithmException
+	private void writeMetadataFile(File toFolder) throws IOException, NoSuchAlgorithmException
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n");
 		sb.append("\r\n");
 		sb.append("<metadata>");
 		sb.append("\r\n");
-		sb.append("    <groupId>" + model.getGroupId() + "</groupId>");
+		sb.append("    <groupId>" + model_.getGroupId() + "</groupId>");
 		sb.append("\r\n");
-		sb.append("    <artifactId>" + model.getArtifactId() + "</artifactId>");
+		sb.append("    <artifactId>" + model_.getArtifactId() + "</artifactId>");
 		sb.append("\r\n");
-		sb.append("    <version>" + model.getVersion() + "</version>");
+		sb.append("    <version>" + model_.getVersion() + "</version>");
 		sb.append("\r\n");
 		sb.append("</metadata>");
 		sb.append("\r\n");
@@ -136,17 +115,17 @@ public class Publish
 		writeChecksumFile(file, "SHA1", toFolder);
 	}
 
-	private static void putFile(File file, Model model, String urlString, String username, String password) throws Exception
+	private void putFile(File file) throws Exception
 	{
-		URL url = new URL(urlString + (urlString.endsWith("/") ? "" : "/") + model.getGroupId() + "/" + model.getArtifactId() + "/" + model.getVersion()
+		URL url = new URL(url_ + (url_.endsWith("/") ? "" : "/") + model_.getGroupId() + "/" + model_.getArtifactId() + "/" + model_.getVersion()
 				+ "/" + file.getName());
 
 		log.info("Uploading " + file.getAbsolutePath() + " to " + url.toString());
 
 		HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-		if (username.length() > 0 || password.length() > 0)
+		if (username_.length() > 0 || password_.length() > 0)
 		{
-			String encoded = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+			String encoded = Base64.getEncoder().encodeToString((username_ + ":" + password_).getBytes());
 			httpCon.setRequestProperty("Authorization", "Basic " + encoded);
 		}
 		httpCon.setDoOutput(true);
@@ -184,5 +163,67 @@ public class Publish
 			throw new Exception("The server reported an error during the publish operation:  " + sb.toString());
 		}
 		log.info("Upload Successful");
+	}
+
+	/**
+	 * @see javafx.concurrent.Task#call()
+	 */
+	@Override
+	protected Integer call() throws Exception
+	{
+		//TODO wire the progress bar to real progress on zip and upload...
+		updateProgress(-1, 50);
+		updateStatus("Creating Archive File");
+		Zip zip = new Zip();
+		File zipFile = zip.createZipFile(model_, classifier_, projectFolder_, dataFiles_);
+		log.info("Wrote " + zipFile);
+
+		File pomFile = new File(projectFolder_, "pom.xml");
+
+		updateStatus("Creating Checksum Files");
+		writeChecksumFile(pomFile, "MD5", zipFile.getParentFile());
+		writeChecksumFile(pomFile, "SHA1", zipFile.getParentFile());
+		writeChecksumFile(zipFile, "MD5", zipFile.getParentFile());
+		writeChecksumFile(zipFile, "SHA1", zipFile.getParentFile());
+		updateStatus("Creating Metadata File");
+		writeMetadataFile(zipFile.getParentFile());
+
+		updateStatus("Uploading pom files");
+		putFile(pomFile);
+		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"));
+		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"));
+		updateStatus("Uploading metadata files");
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"));
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"));
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"));
+		updateStatus("Uploading data files");
+		putFile(zipFile);
+		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"));
+		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"));
+
+		log.debug("Cleaning up temp files");
+		Files.walkFileTree(zipFile.getParentFile().toPath(), new SimpleFileVisitor<Path>()
+		{
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+			{
+				Files.delete(file);
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException
+			{
+				Files.delete(dir);
+				return FileVisitResult.CONTINUE;
+			}
+		});
+		return 0;
+	}
+	
+	private void updateStatus(String message)
+	{
+		status_.append(message + "\r\n");
+		updateMessage(status_.toString());
 	}
 }
