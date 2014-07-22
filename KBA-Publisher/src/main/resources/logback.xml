@@ -17,17 +17,6 @@
 		</encoder>
 	</appender>
 
-	<!-- Prints everything -->
-	<appender name="FILE-DEBUG" class="ch.qos.logback.core.FileAppender">
-		<file>kba-publisher-debug.log</file>
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>TRACE</level>
-		</filter>
-		<encoder>
-			<pattern>%date %-5level %-22([%thread]) %-32([%logger{30}]) %file:%line - %msg%n</pattern>
-		</encoder>
-	</appender>
-
 	<!-- Only prints WARN and worse -->
 	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -72,11 +61,10 @@
 
 	<!-- Set the root logger (all loggers not specified above) at a WARN level -->
 	<root level="WARN">
-		<appender-ref ref="FILE-DEBUG" />
 		<appender-ref ref="FILE-NORMAL" />
 		<appender-ref ref="STDERR" />
 		<!-- The two appenders below can be enabled if you desire INFO or DEBUG log output on the console. -->
-		<appender-ref ref="STDOUT-DEBUG" />
-		<appender-ref ref="STDOUT-INFO" />
+		<!--appender-ref ref="STDOUT-DEBUG" /-->
+		<!--appender-ref ref="STDOUT-INFO" /-->
 	</root>
 </configuration>
