@@ -390,6 +390,7 @@ public class PublisherController
 		{
 			if (!current.contains(f.getAbsolutePath()))
 			{
+				//TODO - if a known data type - like KIE, or CDS - scan it, and pick out some useful info
 				dataFiles.getItems().add(f);
 				current.add(f.getAbsolutePath());
 			}
