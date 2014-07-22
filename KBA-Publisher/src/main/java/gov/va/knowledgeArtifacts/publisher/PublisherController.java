@@ -22,32 +22,33 @@ import gov.va.isaac.AppContext;
 import gov.va.isaac.gui.util.ErrorMarkerUtils;
 import gov.va.isaac.interfaces.gui.CommonDialogsI;
 import gov.va.isaac.util.UpdateableBooleanBinding;
+import gov.va.knowledgeArtifacts.publisher.guiComponents.DependencyComponent;
+import gov.va.knowledgeArtifacts.publisher.guiComponents.LicenseComponent;
+import gov.va.knowledgeArtifacts.publisher.guiComponents.UserComponent;
+import gov.va.knowledgeArtifacts.publisher.types.KnowledgeArtifactType;
+import gov.va.knowledgeArtifacts.publisher.types.SpecialFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -59,8 +60,14 @@ import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.FileItem;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.FileSet;
 import org.apache.maven.pom._4_0.Build;
 import org.apache.maven.pom._4_0.Build.Plugins;
+import org.apache.maven.pom._4_0.Contributor;
+import org.apache.maven.pom._4_0.Dependency;
+import org.apache.maven.pom._4_0.Developer;
 import org.apache.maven.pom._4_0.License;
 import org.apache.maven.pom._4_0.Model;
+import org.apache.maven.pom._4_0.Model.Contributors;
+import org.apache.maven.pom._4_0.Model.Dependencies;
+import org.apache.maven.pom._4_0.Model.Developers;
 import org.apache.maven.pom._4_0.Model.Licenses;
 import org.apache.maven.pom._4_0.Organization;
 import org.apache.maven.pom._4_0.Plugin;
@@ -80,7 +87,7 @@ import org.slf4j.LoggerFactory;
 public class PublisherController
 {
 	private static Logger log = LoggerFactory.getLogger(PublisherController.class);
-	@FXML private Tab contributorsTab;	
+	@FXML private GridPane contributorsGridPane;	
 	@FXML private TextField orgName;
 	@FXML private TextField groupId;
 	@FXML private ComboBox<String> dataType;
@@ -94,27 +101,29 @@ public class PublisherController
 	@FXML private TextField url;
 	@FXML private Button addDataFolder;
 	@FXML private Button projectFolderFileChooser;
-	@FXML private Tab compileDependenciesTab;
-	@FXML private Tab developersTab;
+	@FXML private GridPane dependenciesGridPane;
+	@FXML private GridPane developersGridPane;
 	@FXML private BorderPane root;
 	@FXML private Button publish;
 	@FXML private TextField name;
-	@FXML private Tab runtimeDependenciesTab;
 	@FXML private Button removeDataFile;
 	@FXML private TextField artifactId;
 	@FXML private GridPane licenseGridPane;
 	@FXML private ListView<File> dataFiles;
 	
 	@FXML private Button addLicenseButton;
-	@FXML private Button removeLicenseButton;
+	@FXML private Button addContributorButton;
+	@FXML private Button addDeveloperButton;
+	@FXML private Button addDependencyButton;
 	
 	private File projectFolder_ = null;
 	private Model model_;
 	private Assembly assembly_;
 	
-	private int licenseGridPaneRowCount = 0;
-	
-	private HashMap<String, SpecialFile> specialFiles_ = new HashMap<>();
+	private ArrayList<LicenseComponent> licenseComponents = new ArrayList<>();
+	private ArrayList<UserComponent> developerComponents = new ArrayList<>();
+	private ArrayList<UserComponent> contributorComponents = new ArrayList<>();
+	private ArrayList<DependencyComponent> dependenciesComponents = new ArrayList<>();
 	
 	private UpdateableBooleanBinding projectFolderValid, dataFilesValid, dataTypeValid, nameValid, descriptionValid, groupIdValid,  artifactIdValid, versionValid, 
 		allRequiredReady;
@@ -122,7 +131,7 @@ public class PublisherController
 	@FXML
 	void initialize()
 	{
-		assert contributorsTab != null : "fx:id=\"contributorsTab\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert contributorsGridPane != null : "fx:id=\"contributorsTab\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert orgName != null : "fx:id=\"orgName\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert groupId != null : "fx:id=\"groupId\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert dataType != null : "fx:id=\"dataType\" was not injected: check your FXML file 'Publisher.fxml'.";
@@ -136,21 +145,20 @@ public class PublisherController
 		assert url != null : "fx:id=\"url\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert addDataFolder != null : "fx:id=\"addDataFolder\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert projectFolderFileChooser != null : "fx:id=\"projectFolderFileChooser\" was not injected: check your FXML file 'Publisher.fxml'.";
-		assert compileDependenciesTab != null : "fx:id=\"compileDependenciesTab\" was not injected: check your FXML file 'Publisher.fxml'.";
-		assert developersTab != null : "fx:id=\"developersTab\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert dependenciesGridPane != null : "fx:id=\"dependenciesGridPane\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert developersGridPane != null : "fx:id=\"developersGridPane\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert root != null : "fx:id=\"root\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert publish != null : "fx:id=\"publish\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert name != null : "fx:id=\"name\" was not injected: check your FXML file 'Publisher.fxml'.";
-		assert runtimeDependenciesTab != null : "fx:id=\"runtimeDependenciesTab\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert removeDataFile != null : "fx:id=\"removeDataFile\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert artifactId != null : "fx:id=\"artifactId\" was not injected: check your FXML file 'Publisher.fxml'.";
-		assert licenseGridPane != null : "fx:id=\"licenseTab\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert licenseGridPane != null : "fx:id=\"licenseGridPane\" was not injected: check your FXML file 'Publisher.fxml'.";
 		assert dataFiles != null : "fx:id=\"dataFiles\" was not injected: check your FXML file 'Publisher.fxml'.";
 		
 		assert addLicenseButton != null : "fx:id=\"addLicenseButton\" was not injected: check your FXML file 'Publisher.fxml'.";
-		assert removeLicenseButton != null : "fx:id=\"removeLicenseButton\" was not injected: check your FXML file 'Publisher.fxml'.";
-
-
+		assert addContributorButton != null : "fx:id=\"addLicenseButton\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert addDeveloperButton != null : "fx:id=\"addLicenseButton\" was not injected: check your FXML file 'Publisher.fxml'.";
+		assert addDependencyButton != null : "fx:id=\"addCompileDependencyButton\" was not injected: check your FXML file 'Publisher.fxml'.";
 		
 
 		for (KnowledgeArtifactType type : KnowledgeArtifactType.values())
@@ -336,12 +344,26 @@ public class PublisherController
 		
 		save.setOnAction((actionEvent) -> {save();});
 		
-		addLicenseButton.setOnAction((actionEvent) -> {licenseTabAddBlankRow();});
+		addLicenseButton.setOnAction((actionEvent) -> {licenseTabAddRow(null);});
+		addContributorButton.setOnAction((actionEvent) -> {contributorsTabAddRow(null);});
+		addDeveloperButton.setOnAction((actionEvent) -> {developerTabAddRow(null);});
+		addDependencyButton.setOnAction((actionEvent) -> {dependenciesTabAddRow(null);});
 		
 		licenseGridPane.getChildren().clear();
 		licenseGridPane.getRowConstraints().clear();
-		licenseTabAddBlankRow();
+		licenseTabAddRow(null);
 		
+		developersGridPane.getChildren().clear();
+		developersGridPane.getRowConstraints().clear();
+		developerTabAddRow(null);
+		
+		contributorsGridPane.getChildren().clear();
+		contributorsGridPane.getRowConstraints().clear();
+		contributorsTabAddRow(null);
+		
+		dependenciesGridPane.getChildren().clear();
+		dependenciesGridPane.getRowConstraints().clear();
+		dependenciesTabAddRow(null);
 	}
 	private void addUnique(List<File> files)
 	{
@@ -425,19 +447,50 @@ public class PublisherController
 		o.setName(orgName.getText());
 		o.setUrl(orgUrl.getText());
 		model_.setOrganization(o);
+
+		Dependencies dependencies = new Dependencies();
+		for (DependencyComponent dc : dependenciesComponents)
+		{
+			Dependency d = dc.getDependency();
+			if (d != null)
+			{
+				dependencies.getDependency().add(d);
+			}
+		}
+		model_.setDependencies(dependencies);
 		
-		
-		//TODO finish license
 		Licenses licenses = new Licenses();
-		License license = new License(); 
-		license.setComments("my comments");
-		license.setDistribution("foo");
-		license.setName("mine");
-		licenses.getLicense().add(license);
-		
+		for (LicenseComponent lc : licenseComponents)
+		{
+			License l = lc.getLicense();
+			if (l != null)
+			{
+				licenses.getLicense().add(l);
+			}
+		}
 		model_.setLicenses(licenses);
 		
+		Developers developers = new Developers();
+		for (UserComponent uc : developerComponents)
+		{
+			Developer d = uc.getDeveloper();
+			if (d != null)
+			{
+				developers.getDeveloper().add(d);
+			}
+		}
+		model_.setDevelopers(developers);
 		
+		Contributors contributors = new Contributors();
+		for (UserComponent uc : contributorComponents)
+		{
+			Contributor c = uc.getContributor();
+			if (c != null)
+			{
+				contributors.getContributor().add(c);
+			}
+		}
+		model_.setContributors(contributors);
 		
 		Build build = new Build();
 		Plugins plugins = new Plugins();
@@ -552,6 +605,57 @@ public class PublisherController
 				}
 			}
 			
+			for (DependencyComponent dc : dependenciesComponents)
+			{
+				dc.removeFromGridPane(dependenciesGridPane);
+			}
+			dependenciesComponents.clear();
+			if (model_.getDependencies() != null)
+			{
+				for (Dependency d : model_.getDependencies().getDependency())
+				{
+					dependenciesTabAddRow(d);
+				}
+			}
+			
+			for (LicenseComponent lc : licenseComponents)
+			{
+				lc.removeFromGridPane(licenseGridPane);
+			}
+			licenseComponents.clear();
+			if (model_.getLicenses() != null)
+			{
+				for (License l : model_.getLicenses().getLicense())
+				{
+					licenseTabAddRow(l);
+				}
+			}
+			
+			for (UserComponent uc : developerComponents)
+			{
+				uc.removeFromGridPane(developersGridPane);
+			}
+			developerComponents.clear();
+			if (model_.getDevelopers() != null)
+			{
+				for (Developer d : model_.getDevelopers().getDeveloper())
+				{
+					developerTabAddRow(d);
+				}
+			}
+			
+			for (UserComponent uc : contributorComponents)
+			{
+				uc.removeFromGridPane(contributorsGridPane);
+			}
+			contributorComponents.clear();
+			if (model_.getContributors() != null)
+			{
+				for (Contributor c : model_.getContributors().getContributor())
+				{
+					contributorsTabAddRow(c);
+				}
+			}
 		}
 		catch (Exception e)
 		{
@@ -605,11 +709,23 @@ public class PublisherController
 	
 	private void writeLicenseFile() throws IOException
 	{
-		//TODO loop, finish
 		StringBuilder sb = new StringBuilder();
-		
-		sb.append("Name:  ${project.licenses[0].name}");
-		sb.append("\r\n");
+		int i = 0;
+		for (LicenseComponent lc : licenseComponents)
+		{
+			License l = lc.getLicense();
+			if (l != null)
+			{
+				sb.append("Name:  ${project.licenses[" + i + "].name}");
+				sb.append("\r\n");
+				sb.append("URL:  ${project.licenses[" + i + "].url}");
+				sb.append("\r\n");
+				sb.append("Comments:  ${project.licenses[" + i + "].comments}");
+				sb.append("\r\n");
+				sb.append("Distribution:  ${project.licenses[" + i++ + "].distribution}");
+				sb.append("\r\n");
+			}
+		}
 		
 		java.nio.file.Files.write(new File(new File(new File(projectFolder_, "src"), "assembly"), "LICENSE.txt").toPath(), sb.toString().getBytes(), 
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -636,29 +752,63 @@ public class PublisherController
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 	
-	private void licenseTabAddBlankRow()
+	private void licenseTabAddRow(License l)
 	{
-		licenseGridPane.add(new Label("License Name"), 0, licenseGridPaneRowCount);
-		licenseGridPane.add(new TextField(), 1, licenseGridPaneRowCount++);
-		RowConstraints rc = new RowConstraints(Control.USE_PREF_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
-		rc.setFillHeight(false);
-		rc.setVgrow(Priority.NEVER);
-		licenseGridPane.getRowConstraints().add(rc);
-		
-		licenseGridPane.add(new Label("License URL"), 0, licenseGridPaneRowCount);
-		licenseGridPane.add(new TextField(), 1, licenseGridPaneRowCount++);
-		rc = new RowConstraints(Control.USE_PREF_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
-		rc.setFillHeight(false);
-		rc.setVgrow(Priority.NEVER);
-		licenseGridPane.getRowConstraints().add(rc);
-		
-		licenseGridPane.add(new Label("License Comments"), 0, licenseGridPaneRowCount);
-		TextArea area = new TextArea();
-		area.setWrapText(true);
-		area.setPrefHeight(100);
-		licenseGridPane.add(area, 1, licenseGridPaneRowCount++);
-		rc = new RowConstraints(Control.USE_PREF_SIZE, Control.USE_COMPUTED_SIZE, Control.USE_COMPUTED_SIZE);
-		rc.setFillHeight(false);
-		rc.setVgrow(Priority.NEVER);
-		licenseGridPane.getRowConstraints().add(rc);	}
+		LicenseComponent lc = new LicenseComponent(l);
+		lc.addToGridPane(licenseGridPane, licenseComponents.size(), new Consumer<LicenseComponent>()
+		{
+			@Override
+			public void accept(LicenseComponent t)
+			{
+				licenseComponents.remove(lc);
+				lc.removeFromGridPane(licenseGridPane);
+			}
+		});
+		licenseComponents.add(lc);
+	}
+	
+	private void developerTabAddRow(Developer d)
+	{
+		UserComponent uc = new UserComponent(d);
+		uc.addToGridPane(developersGridPane, developerComponents.size(), new Consumer<UserComponent>()
+		{
+			@Override
+			public void accept(UserComponent uc)
+			{
+				developerComponents.remove(uc);
+				uc.removeFromGridPane(developersGridPane);
+			}
+		});
+		developerComponents.add(uc);
+	}
+	
+	private void contributorsTabAddRow(Contributor c)
+	{
+		UserComponent uc = new UserComponent(c);
+		uc.addToGridPane(contributorsGridPane, contributorComponents.size(), new Consumer<UserComponent>()
+		{
+			@Override
+			public void accept(UserComponent uc)
+			{
+				contributorComponents.remove(uc);
+				uc.removeFromGridPane(contributorsGridPane);
+			}
+		});
+		contributorComponents.add(uc);
+	}
+	
+	private void dependenciesTabAddRow(Dependency d)
+	{
+		DependencyComponent uc = new DependencyComponent(d);
+		uc.addToGridPane(dependenciesGridPane, dependenciesComponents.size(), new Consumer<DependencyComponent>()
+		{
+			@Override
+			public void accept(DependencyComponent uc)
+			{
+				dependenciesComponents.remove(uc);
+				uc.removeFromGridPane(dependenciesGridPane);
+			}
+		});
+		dependenciesComponents.add(uc);
+	}
 }

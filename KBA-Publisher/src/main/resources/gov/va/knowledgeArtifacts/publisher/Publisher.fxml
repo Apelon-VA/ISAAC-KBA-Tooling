@@ -6,9 +6,11 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane fx:id="root" minWidth="400.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gov.va.knowledgeArtifacts.publisher.PublisherController">
+<BorderPane fx:id="root" minWidth="400.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="gov.va.knowledgeArtifacts.publisher.PublisherController">
 	<center>
-		<TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="390.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+		<TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="390.0" tabClosingPolicy="UNAVAILABLE"
+			BorderPane.alignment="CENTER">
 			<tabs>
 				<Tab text="Data Files">
 					<content>
@@ -35,8 +37,10 @@
 								<TextField fx:id="projectFolder" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
 								<Separator maxWidth="1.7976931348623157E308" prefWidth="5000.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
 								<Label text="Data Files and Folders to Include in the Artifact" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" />
-								<ListView fx:id="dataFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="50.0" minWidth="100.0" prefWidth="5000.0" BorderPane.alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-								<HBox alignment="CENTER" fillHeight="false" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="4">
+								<ListView fx:id="dataFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="50.0" minWidth="100.0"
+									prefWidth="5000.0" BorderPane.alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+								<HBox alignment="CENTER" fillHeight="false" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER"
+									GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="4">
 									<children>
 										<Button fx:id="addDataFile" mnemonicParsing="false" prefWidth="100.0" text="Add Files">
 											<HBox.margin>
@@ -66,102 +70,213 @@
 				</Tab>
 				<Tab text="KB Artifact">
 					<content>
-						<ScrollPane fitToWidth="true">
-							<content>
-								<GridPane hgap="5.0" vgap="5.0">
-									<columnConstraints>
-										<ColumnConstraints fillWidth="false" hgrow="NEVER" />
-										<ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-									</columnConstraints>
-									<rowConstraints>
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-										<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-									</rowConstraints>
+						<BorderPane prefHeight="200.0" prefWidth="200.0">
+							<center>
+								<ScrollPane fitToWidth="true" BorderPane.alignment="CENTER">
+									<content>
+										<GridPane hgap="5.0" vgap="5.0">
+											<columnConstraints>
+												<ColumnConstraints fillWidth="false" hgrow="NEVER" />
+												<ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+											</columnConstraints>
+											<rowConstraints>
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+											</rowConstraints>
+											<children>
+												<Label text="Group ID" GridPane.rowIndex="4" />
+												<Label text="Artifact ID" GridPane.rowIndex="5" />
+												<Label text="Version" GridPane.rowIndex="6" />
+												<TextField fx:id="groupId" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+												<TextField fx:id="artifactId" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+												<TextField fx:id="version" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+												<Label text="Data Type" />
+												<ComboBox fx:id="dataType" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
+												<Label text="Name" GridPane.rowIndex="1" />
+												<TextField fx:id="name" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+												<Label text="Description" GridPane.rowIndex="2" />
+												<TextArea fx:id="description" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="100.0" prefHeight="100.0"
+													wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+												<Label text="Organization Name" GridPane.rowIndex="7" />
+												<Label text="Organization URL" GridPane.rowIndex="8" />
+												<Label text="URL" GridPane.rowIndex="3" />
+												<TextField fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+												<TextField fx:id="orgName" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+												<TextField fx:id="orgUrl" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+											</children>
+											<padding>
+												<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+											</padding>
+										</GridPane>
+									</content>
+								</ScrollPane>
+							</center>
+							<padding>
+								<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+							</padding>
+						</BorderPane>
+					</content>
+				</Tab>
+				<Tab text="Dependencies">
+					<content>
+						<BorderPane>
+							<center>
+								<ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
+									<content>
+										<GridPane fx:id="dependenciesGridPane" hgap="5.0" vgap="5.0">
+											<columnConstraints>
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+												<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+											</columnConstraints>
+											<rowConstraints>
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+											</rowConstraints>
+											<padding>
+												<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+											</padding>
+										</GridPane>
+									</content>
+								</ScrollPane>
+							</center>
+							<bottom>
+								<HBox alignment="CENTER" fillHeight="false" BorderPane.alignment="CENTER">
 									<children>
-										<Label text="Group ID" GridPane.rowIndex="4" />
-										<Label text="Artifact ID" GridPane.rowIndex="5" />
-										<Label text="Version" GridPane.rowIndex="6" />
-										<TextField fx:id="groupId" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-										<TextField fx:id="artifactId" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-										<TextField fx:id="version" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-										<Label text="Data Type" />
-										<ComboBox fx:id="dataType" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
-										<Label text="Name" GridPane.rowIndex="1" />
-										<TextField fx:id="name" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-										<Label text="Description" GridPane.rowIndex="2" />
-										<TextArea fx:id="description" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="100.0" prefHeight="100.0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-										<Label text="Organization Name" GridPane.rowIndex="7" />
-										<Label text="Organization URL" GridPane.rowIndex="8" />
-										<Label text="URL" GridPane.rowIndex="3" />
-										<TextField fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-										<TextField fx:id="orgName" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-										<TextField fx:id="orgUrl" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+										<Button fx:id="addDependencyButton" mnemonicParsing="false" text="Add Dependency" />
 									</children>
 									<padding>
 										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
 									</padding>
-								</GridPane>
-							</content>
-						</ScrollPane>
+								</HBox>
+							</bottom>
+							<padding>
+								<Insets left="5.0" right="5.0" top="5.0" />
+							</padding>
+						</BorderPane>
 					</content>
 				</Tab>
 				<Tab text="License Info">
-<content><BorderPane>
-<bottom><HBox alignment="CENTER" fillHeight="false" spacing="10.0" BorderPane.alignment="CENTER">
-<children><Button fx:id="addLicenseButton" mnemonicParsing="false" prefWidth="125.0" text="Add License" /><Button fx:id="removeLicenseButton" mnemonicParsing="false" prefWidth="125.0" text="Remove License" />
-</children>
-<padding>
-<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-</padding></HBox>
-</bottom>
-<center><ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
-<content><GridPane fx:id="licenseGridPane" hgap="5.0" vgap="5.0">
-  <columnConstraints>
-    <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-  </columnConstraints>
-  <rowConstraints>
-    <RowConstraints fillHeight="false" minHeight="10.0" vgrow="NEVER" />
-  </rowConstraints>
-<children><Label text="Labels go here" />
-</children>
-<padding>
-<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-</padding>
-</GridPane>
-</content>
-</ScrollPane>
-</center>
-<padding>
-<Insets left="5.0" right="5.0" top="5.0" />
-</padding></BorderPane>
-</content>
-				</Tab>
-				<Tab fx:id="developersTab" text="Developers">
 					<content>
-						<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+						<BorderPane>
+							<bottom>
+								<HBox alignment="CENTER" fillHeight="false" spacing="10.0" BorderPane.alignment="CENTER">
+									<children>
+										<Button fx:id="addLicenseButton" mnemonicParsing="false" text="Add License" />
+									</children>
+									<padding>
+										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+									</padding>
+								</HBox>
+							</bottom>
+							<center>
+								<ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
+									<content>
+										<GridPane fx:id="licenseGridPane" hgap="5.0" vgap="5.0">
+											<columnConstraints>
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+												<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+											</columnConstraints>
+											<rowConstraints>
+												<RowConstraints fillHeight="false" minHeight="10.0" vgrow="NEVER" />
+											</rowConstraints>
+											<children>
+												<Label text="Labels go here" />
+											</children>
+											<padding>
+												<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+											</padding>
+										</GridPane>
+									</content>
+								</ScrollPane>
+							</center>
+							<padding>
+								<Insets left="5.0" right="5.0" top="5.0" />
+							</padding>
+						</BorderPane>
 					</content>
 				</Tab>
-				<Tab fx:id="contributorsTab" text="Contributors">
+				<Tab text="Developers">
 					<content>
-						<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+						<BorderPane>
+							<center>
+								<ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
+									<content>
+										<GridPane fx:id="developersGridPane" hgap="5.0" vgap="5.0">
+											<columnConstraints>
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+												<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+											</columnConstraints>
+											<rowConstraints>
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+											</rowConstraints>
+											<padding>
+												<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+											</padding>
+										</GridPane>
+									</content>
+								</ScrollPane>
+							</center>
+							<bottom>
+								<HBox alignment="CENTER" fillHeight="false" BorderPane.alignment="CENTER">
+									<children>
+										<Button fx:id="addDeveloperButton" mnemonicParsing="false" text="Add Developer" />
+									</children>
+									<padding>
+										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+									</padding>
+								</HBox>
+							</bottom>
+							<padding>
+								<Insets left="5.0" right="5.0" top="5.0" />
+							</padding>
+						</BorderPane>
 					</content>
 				</Tab>
-				<Tab fx:id="compileDependenciesTab" text="Compile Dependencies">
+				<Tab text="Contributors">
 					<content>
-						<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-					</content>
-				</Tab>
-				<Tab fx:id="runtimeDependenciesTab" text="Runtime Dependencies">
-					<content>
-						<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+						<BorderPane>
+							<center>
+								<ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
+									<content>
+										<GridPane fx:id="contributorsGridPane" hgap="5.0" vgap="5.0">
+											<columnConstraints>
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+												<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+											</columnConstraints>
+											<rowConstraints>
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+											</rowConstraints>
+											<padding>
+												<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+											</padding>
+										</GridPane>
+									</content>
+								</ScrollPane>
+							</center>
+							<bottom>
+								<HBox alignment="CENTER" fillHeight="false" BorderPane.alignment="CENTER">
+									<padding>
+										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+									</padding>
+									<children>
+										<Button fx:id="addContributorButton" mnemonicParsing="false" text="Add Contributor" />
+									</children>
+								</HBox>
+							</bottom>
+							<padding>
+								<Insets left="5.0" right="5.0" top="5.0" />
+							</padding>
+						</BorderPane>
 					</content>
 				</Tab>
 			</tabs>
@@ -171,7 +286,8 @@
 		<VBox>
 			<children>
 				<Separator prefWidth="200.0" />
-				<HBox fx:id="bottomBox" alignment="CENTER_RIGHT" fillHeight="false" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
+				<HBox fx:id="bottomBox" alignment="CENTER_RIGHT" fillHeight="false" maxWidth="1.7976931348623157E308"
+					style="-fx-background-color: linear-gradient(from 25% 25% to 100% 100%, #bbbdbf, #a6a7a8);" BorderPane.alignment="CENTER">
 					<children>
 						<Button fx:id="save" mnemonicParsing="false" text="Save">
 							<HBox.margin>
@@ -189,13 +305,17 @@
 		</VBox>
 	</bottom>
 	<top>
-		<Label text="ISAAC Knowledge Base Artifact Publisher" BorderPane.alignment="CENTER">
+		<Label alignment="CENTER" maxWidth="1.7976931348623157E308" style="-fx-background-color: linear-gradient(from 25% 25% to 100% 100%, #3b93f9, #377cca);"
+			text="ISAAC Knowledge Base Artifact Publisher" textAlignment="CENTER" BorderPane.alignment="CENTER">
 			<font>
 				<Font name="System Bold" size="23.0" />
 			</font>
 			<BorderPane.margin>
-				<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+				<Insets />
 			</BorderPane.margin>
+			<padding>
+				<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+			</padding>
 		</Label>
 	</top>
 </BorderPane>
