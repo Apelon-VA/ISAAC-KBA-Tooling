@@ -25,6 +25,7 @@ import gov.va.isaac.util.UpdateableBooleanBinding;
 import gov.va.knowledgeArtifacts.publisher.guiComponents.DependencyComponent;
 import gov.va.knowledgeArtifacts.publisher.guiComponents.LicenseComponent;
 import gov.va.knowledgeArtifacts.publisher.guiComponents.UserComponent;
+import gov.va.knowledgeArtifacts.publisher.publish.Publish;
 import gov.va.knowledgeArtifacts.publisher.types.KnowledgeArtifactType;
 import gov.va.knowledgeArtifacts.publisher.types.SpecialFile;
 import java.io.File;
@@ -343,6 +344,7 @@ public class PublisherController
 		ErrorMarkerUtils.setupDisabledInfoMarker(publish, sp, allRequiredReady.getReasonWhyInvalid());
 		
 		save.setOnAction((actionEvent) -> {save();});
+		publish.setOnAction((actionEvent) -> {publish();});
 		
 		addLicenseButton.setOnAction((actionEvent) -> {licenseTabAddRow(null);});
 		addContributorButton.setOnAction((actionEvent) -> {contributorsTabAddRow(null);});
@@ -395,6 +397,8 @@ public class PublisherController
 		{
 			assembly_.setId(type.getClassifier());
 		}
+		
+		assembly_.setBaseDirectory("${artifactId}-${version}-" + assembly_.getId());
 		
 		Formats formats = new Formats();
 		formats.getFormat().add("zip");
@@ -663,7 +667,21 @@ public class PublisherController
 					+ " but the existing file will be completely overwritten upon save or publish", e);
 			assembly_ = new Assembly();
 		}
-
+	}
+	
+	private void publish()
+	{
+		try
+		{
+			save();
+			
+			Publish.doPublish(model_, assembly_.getId(), projectFolder_, dataFiles.getItems());
+		}
+		catch (Exception e)
+		{
+			log.error("Error Publishing", e);
+			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog("Error Publishing", e);
+		}
 	}
 	
 	private String convertNull(String input)
