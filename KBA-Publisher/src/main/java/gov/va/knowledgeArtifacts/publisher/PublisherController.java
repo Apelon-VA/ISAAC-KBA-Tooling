@@ -25,11 +25,11 @@ import gov.va.isaac.util.UpdateableBooleanBinding;
 import gov.va.knowledgeArtifacts.publisher.guiComponents.DependencyComponent;
 import gov.va.knowledgeArtifacts.publisher.guiComponents.LicenseComponent;
 import gov.va.knowledgeArtifacts.publisher.guiComponents.UserComponent;
-import gov.va.knowledgeArtifacts.publisher.publish.Publish;
 import gov.va.knowledgeArtifacts.publisher.types.KnowledgeArtifactType;
 import gov.va.knowledgeArtifacts.publisher.types.SpecialFile;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +40,8 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
@@ -53,6 +55,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.FileSets;
 import org.apache.maven.plugins.maven_assembly_plugin.assembly._1_1.Assembly.Files;
@@ -343,7 +348,13 @@ public class PublisherController
 		sp = ErrorMarkerUtils.swapHBoxComponents(publish, new StackPane(), bottomBox);
 		ErrorMarkerUtils.setupDisabledInfoMarker(publish, sp, allRequiredReady.getReasonWhyInvalid());
 		
-		save.setOnAction((actionEvent) -> {save();});
+		save.setOnAction((actionEvent) -> 
+		{
+			save();
+			AppContext.getServiceLocator().getService(CommonDialogsI.class).showInformationDialog("Save Complete", "The project has been created and saved."
+					+ "  Execute 'mvn publish' within the folder '" + projectFolder_.getAbsolutePath() + "' to publish.", root.getScene().getWindow());
+		});
+
 		publish.setOnAction((actionEvent) -> {publish();});
 		
 		addLicenseButton.setOnAction((actionEvent) -> {licenseTabAddRow(null);});
@@ -675,7 +686,20 @@ public class PublisherController
 		{
 			save();
 			
-			Publish.doPublish(model_, assembly_.getId(), projectFolder_, dataFiles.getItems());
+			URL resource = PublishDialogController.class.getResource("PublishDialog.fxml");
+			log.debug("FXML for " + PublishDialogController.class + ": " + resource);
+			FXMLLoader loader = new FXMLLoader(resource);
+			loader.load();
+			PublishDialogController uc = loader.getController();
+			
+			Scene scene = new Scene(loader.getRoot());
+			Stage stage = new Stage(StageStyle.DECORATED);
+			stage.setScene(scene);
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.initOwner(root.getScene().getWindow());
+			uc.finishInit(model_, assembly_.getId(), projectFolder_, dataFiles.getItems());
+			stage.sizeToScene();
+			stage.show();
 		}
 		catch (Exception e)
 		{

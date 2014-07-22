@@ -28,14 +28,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
-import net.lingala.zip4j.exception.ZipException;
 import org.apache.maven.pom._4_0.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +52,7 @@ public class Publish
 {
 	private static Logger log = LoggerFactory.getLogger(Publish.class);
 
-	public static void doPublish(Model model, String classifier, File projectFolder, List<File> dataFiles) throws IOException, ZipException, NoSuchAlgorithmException
+	public static void doPublish(Model model, String classifier, File projectFolder, List<File> dataFiles, String url, String username, String password) throws Exception
 	{
 		Zip zip = new Zip();
 		File zipFile = zip.createZipFile(model, classifier, projectFolder, dataFiles);
@@ -63,16 +66,33 @@ public class Publish
 		writeChecksumFile(zipFile, "SHA1", zipFile.getParentFile());
 		writeMetadataFile(model, zipFile.getParentFile());
 
-		putFile(pomFile, model);
-		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"), model);
-		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"), model);
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"), model);
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"), model);
-		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"), model);
-		putFile(zipFile, model);
-		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"), model);
-		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"), model);
+		putFile(pomFile, model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), "pom.xml.md5"), model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), "pom.xml.sha1"), model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml"), model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.md5"), model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), "maven-metadata.xml.sha1"), model, url, username, password);
+		putFile(zipFile, model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".md5"), model, url, username, password);
+		putFile(new File(zipFile.getParentFile(), zipFile.getName() + ".sha1"), model, url, username, password);
 
+		log.debug("Cleaning up temp files");
+		Files.walkFileTree(zipFile.getParentFile().toPath(), new SimpleFileVisitor<Path>()
+		{
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+			{
+				Files.delete(file);
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException
+			{
+				Files.delete(dir);
+				return FileVisitResult.CONTINUE;
+			}
+		});
 	}
 
 	private static void writeChecksumFile(File file, String type, File toFolder) throws NoSuchAlgorithmException, IOException
@@ -116,13 +136,19 @@ public class Publish
 		writeChecksumFile(file, "SHA1", toFolder);
 	}
 
-	private static void putFile(File file, Model model) throws IOException
+	private static void putFile(File file, Model model, String urlString, String username, String password) throws Exception
 	{
-		URL url = new URL("https://va.maestrodev.com/archiva/repository/sim-snapshots/" + model.getGroupId() + "/" + model.getArtifactId() + "/" + model.getVersion()
+		URL url = new URL(urlString + (urlString.endsWith("/") ? "" : "/") + model.getGroupId() + "/" + model.getArtifactId() + "/" + model.getVersion()
 				+ "/" + file.getName());
+
+		log.info("Uploading " + file.getAbsolutePath() + " to " + url.toString());
+
 		HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-		String encoded = Base64.getEncoder().encodeToString("darmbrust:darmbrust".getBytes());
-		httpCon.setRequestProperty("Authorization", "Basic " + encoded);
+		if (username.length() > 0 || password.length() > 0)
+		{
+			String encoded = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+			httpCon.setRequestProperty("Authorization", "Basic " + encoded);
+		}
 		httpCon.setDoOutput(true);
 		httpCon.setRequestMethod("PUT");
 		httpCon.setConnectTimeout(30 * 1000);
@@ -152,7 +178,11 @@ public class Publish
 				sb.append(cBuffer, 0, read);
 			}
 		}
-		System.out.println("Read: '" + sb.toString() + "'");
 		httpCon.disconnect();
+		if (sb.toString().trim().length() > 0)
+		{
+			throw new Exception("The server reported an error during the publish operation:  " + sb.toString());
+		}
+		log.info("Upload Successful");
 	}
 }

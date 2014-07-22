@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>gov.va.isaac.modules</groupId>
 			<artifactId>gui-util</artifactId>
-			<version>1.0-Sprint_10</version>
+			<version>1.0-Sprint_11-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
