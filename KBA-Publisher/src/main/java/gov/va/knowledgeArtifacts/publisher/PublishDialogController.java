@@ -37,6 +37,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import org.apache.maven.pom._4_0.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link PublishDialogController}
@@ -45,7 +47,8 @@ import org.apache.maven.pom._4_0.Model;
  */
 public class PublishDialogController
 {
-
+	private static Logger log = LoggerFactory.getLogger(PublishDialogController.class);
+	
 	@FXML private ResourceBundle resources;
 	@FXML private URL location;
 	@FXML private PasswordField password;
@@ -157,10 +160,12 @@ public class PublishDialogController
 		
 		if (task.getException() != null)
 		{
+			log.error("Error during publish: ", task.getException());
 			status.setText(status.getText() + "\r\nFailed:  " + task.getException().toString());
 		}
 		else
 		{
+			log.info("Publish complete");
 			status.setText(status.getText() + "\r\nComplete");
 		}
 		

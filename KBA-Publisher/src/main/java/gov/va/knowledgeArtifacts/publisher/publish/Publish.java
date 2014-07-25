@@ -118,7 +118,9 @@ public class Publish extends Task<Integer>
 
 	private void putFile(File file, String targetFileName) throws Exception
 	{
-		URL url = new URL(url_ + (url_.endsWith("/") ? "" : "/") + model_.getGroupId() + "/" + model_.getArtifactId() + "/" + model_.getVersion()
+		String groupIdTemp = model_.getGroupId();
+		groupIdTemp = groupIdTemp.replaceAll("\\.", "//");
+		URL url = new URL(url_ + (url_.endsWith("/") ? "" : "/") + groupIdTemp + "/" + model_.getArtifactId() + "/" + model_.getVersion()
 				+ "/" + (targetFileName == null ? file.getName() : targetFileName));
 
 		log.info("Uploading " + file.getAbsolutePath() + " to " + url.toString());
@@ -133,6 +135,8 @@ public class Publish extends Task<Integer>
 		httpCon.setRequestMethod("PUT");
 		httpCon.setConnectTimeout(30 * 1000);
 		httpCon.setReadTimeout(60 * 60 * 1000);
+		//httpCon.setChunkedStreamingMode(8192);
+		httpCon.setFixedLengthStreamingMode(file.length());
 		OutputStream out = httpCon.getOutputStream();
 
 		byte[] buf = new byte[8192];
@@ -141,8 +145,8 @@ public class Publish extends Task<Integer>
 		while ((read = fis.read(buf, 0, buf.length)) > 0)
 		{
 			out.write(buf, 0, read);
-			out.flush();
 		}
+		out.flush();
 		out.close();
 		fis.close();
 		InputStream is = httpCon.getInputStream();
