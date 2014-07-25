@@ -76,14 +76,23 @@ public class Publish extends Task<Integer>
 
 	private void writeChecksumFile(File file, String type, File toFolder, String targetName) throws NoSuchAlgorithmException, IOException
 	{
+		updateTitle("Calculating Checksum for " + file.getName());
 		MessageDigest md = MessageDigest.getInstance(type);
 		try (InputStream is = Files.newInputStream(file.toPath()))
 		{
 			DigestInputStream dis = new DigestInputStream(is, md);
-			byte[] buffer = new byte[4096];
+			byte[] buffer = new byte[8192];
+			long fileLength = file.length();
+			long loopCount = 0;
 			int read = 0;
 			while (read != -1)
 			{
+				//update every 10 MB
+				if (loopCount++ % 1280 == 0)
+				{
+					updateProgress((loopCount * 8192l), fileLength);
+					updateTitle("Calculating Checksum for " + file.getName() + " - " + (loopCount * 8192l) + " / " + fileLength);
+				}
 				read = dis.read(buffer);
 			}
 		}
@@ -93,6 +102,8 @@ public class Publish extends Task<Integer>
 		Files.write(new File(toFolder, file.getName() + "." + type.toLowerCase()).toPath(), 
 				(checkSum + "  " + (targetName == null ? file.getName() : targetName)).getBytes(), StandardOpenOption.WRITE,
 				StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+		updateTitle("");
+		updateProgress(-1, 0);
 	}
 
 	private void writeMetadataFile(File toFolder) throws IOException, NoSuchAlgorithmException
@@ -124,6 +135,9 @@ public class Publish extends Task<Integer>
 				+ "/" + (targetFileName == null ? file.getName() : targetFileName));
 
 		log.info("Uploading " + file.getAbsolutePath() + " to " + url.toString());
+		
+		updateTitle("Uploading " + file.getName());
+		updateProgress(0, file.length());
 
 		HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
 		if (username_.length() > 0 || password_.length() > 0)
@@ -136,14 +150,22 @@ public class Publish extends Task<Integer>
 		httpCon.setConnectTimeout(30 * 1000);
 		httpCon.setReadTimeout(60 * 60 * 1000);
 		//httpCon.setChunkedStreamingMode(8192);
-		httpCon.setFixedLengthStreamingMode(file.length());
+		long fileLength = file.length();
+		httpCon.setFixedLengthStreamingMode(fileLength);
 		OutputStream out = httpCon.getOutputStream();
 
 		byte[] buf = new byte[8192];
+		long loopCount = 0;
 		FileInputStream fis = new FileInputStream(file);
 		int read = 0;
 		while ((read = fis.read(buf, 0, buf.length)) > 0)
 		{
+			//update every MB
+			if (loopCount++ % 128 == 0)
+			{
+				updateProgress((loopCount * 8192l), fileLength);
+				updateTitle("Uploading " + file.getName() + " - " + (loopCount * 8192l) + " / " + fileLength);
+			}
 			out.write(buf, 0, read);
 		}
 		out.flush();
@@ -168,6 +190,8 @@ public class Publish extends Task<Integer>
 			throw new Exception("The server reported an error during the publish operation:  " + sb.toString());
 		}
 		log.info("Upload Successful");
+		updateTitle("");
+		updateProgress(-1, 0);
 	}
 
 	/**
@@ -176,8 +200,9 @@ public class Publish extends Task<Integer>
 	@Override
 	protected Integer call() throws Exception
 	{
-		//TODO wire the progress bar to real progress on zip and upload...
-		updateProgress(-1, 50);
+		//TODO wire the progress bar to real progress on zip...
+		updateProgress(-1, 0);
+		updateTitle("Creating Archive File");
 		updateStatus("Creating Archive File");
 		Zip zip = new Zip();
 		File zipFile = zip.createZipFile(model_, classifier_, projectFolder_, dataFiles_);
@@ -225,6 +250,8 @@ public class Publish extends Task<Integer>
 				return FileVisitResult.CONTINUE;
 			}
 		});
+		updateTitle("");
+		updateProgress(10, 10);
 		return 0;
 	}
 	
