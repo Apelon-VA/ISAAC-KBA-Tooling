@@ -697,7 +697,7 @@ public class PublisherController
 			Scene scene = new Scene(loader.getRoot());
 			Stage stage = new Stage(StageStyle.DECORATED);
 			stage.setScene(scene);
-			stage.setTitle("ISSAC KBA Publisher - Upload");
+			stage.setTitle("ISAAC KBA Publisher - Upload");
 			stage.getIcons().add(new Image("/images/silk-icons/src/main/resources/silk/16x16/package_go.png"));
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.initOwner(root.getScene().getWindow());
