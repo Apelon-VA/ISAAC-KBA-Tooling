@@ -135,8 +135,8 @@ public class Publish extends Task<Integer>
 		httpCon.setRequestMethod("PUT");
 		httpCon.setConnectTimeout(30 * 1000);
 		httpCon.setReadTimeout(60 * 60 * 1000);
-		httpCon.setChunkedStreamingMode(8192);
-		//httpCon.setFixedLengthStreamingMode(file.length());
+		//httpCon.setChunkedStreamingMode(8192);
+		httpCon.setFixedLengthStreamingMode(file.length());
 		OutputStream out = httpCon.getOutputStream();
 
 		byte[] buf = new byte[8192];
