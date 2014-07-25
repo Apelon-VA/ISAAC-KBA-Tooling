@@ -25,7 +25,7 @@ package gov.va.knowledgeArtifacts.publisher.types;
  */
 public enum KnowledgeArtifactType
 {
-	EConcept("ISAAC EConcept Format", "ec"),ChangeSet("ISAAC Changeset Format", "ec_cs"), KIE("Knowledge Is Everything (Drools)", "kie"), 
+	IBDB("ISAAC Database Format", "bdb"), EConcept("ISAAC EConcept Format", "ec"),ChangeSet("ISAAC Changeset Format", "ec_cs"), KIE("Knowledge Is Everything (Drools)", "kie"), 
 	CDSKnowledgeArtifact("CDS Knowledge Artifact", "cds_ka"), RF2("Release Format 2", "RF2"), OWL("Web Ontology Language", "owl");
 	
 	private String niceName_;
