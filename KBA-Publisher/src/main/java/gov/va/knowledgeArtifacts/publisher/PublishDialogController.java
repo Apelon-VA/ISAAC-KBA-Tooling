@@ -30,6 +30,7 @@ import java.util.ResourceBundle;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
@@ -57,6 +58,7 @@ public class PublishDialogController
 	@FXML private TextField url;
 	@FXML private TextField username;
 	@FXML private TextArea status;
+	@FXML private Label progressBarLabel;
 	
 	private Model model_;
 	private String classifier_;
@@ -73,6 +75,7 @@ public class PublishDialogController
 		assert url != null : "fx:id=\"url\" was not injected: check your FXML file 'PublishDialog.fxml'.";
 		assert username != null : "fx:id=\"username\" was not injected: check your FXML file 'PublishDialog.fxml'.";
 		assert status != null : "fx:id=\"status\" was not injected: check your FXML file 'PublishDialog.fxml'.";
+		assert progressBarLabel != null : "fx:id=\"progressBarLabel\" was not injected: check your FXML file 'PublishDialog.fxml'.";
 		
 		url.setText("https://va.maestrodev.com/archiva/repository/data-files/");
 		
@@ -139,14 +142,15 @@ public class PublishDialogController
 		Publish task = new Publish(model_, classifier_, projectFolder_, dataFiles_, url.getText(), username.getText(), password.getText());
 		task.setOnSucceeded((event) -> 
 		{
-			taskComplete(task);
+			taskFinished(task);
 		});
 		
 		task.setOnFailed((event) -> 
 		{
-			taskComplete(task);
+			taskFinished(task);
 		});
 		
+		progressBarLabel.textProperty().bind(task.titleProperty());
 		progressBar.progressProperty().bind(task.progressProperty());
 		status.textProperty().bind(task.messageProperty());
 		
@@ -154,7 +158,7 @@ public class PublishDialogController
 		th.start();
 	}
 	
-	protected void taskComplete(Task<?> task)
+	protected void taskFinished(Task<?> task)
 	{
 		status.textProperty().unbind();
 		
@@ -168,9 +172,6 @@ public class PublishDialogController
 			log.info("Publish complete");
 			status.setText(status.getText() + "\r\nComplete");
 		}
-		
-		progressBar.progressProperty().unbind();
-		progressBar.setProgress(1.0);
 		publishButton.disableProperty().bind(urlValid.not());
 	}
 }
