@@ -62,6 +62,7 @@ public class PublishDialogController
 	
 	private Model model_;
 	private String classifier_;
+	private String dataType_;
 	private File projectFolder_;
 	private List<File> dataFiles_;
 	private ValidBooleanBinding urlValid;
@@ -123,10 +124,11 @@ public class PublishDialogController
 		
 	}
 	
-	protected void finishInit(Model model, String classifier, File projectFolder, List<File> dataFiles)
+	protected void finishInit(Model model, String classifier, String dataType, File projectFolder, List<File> dataFiles)
 	{
 		model_ = model;
 		classifier_ = classifier;
+		dataType_ = dataType;
 		projectFolder_ = projectFolder;
 		dataFiles_ = dataFiles;
 	}
@@ -139,7 +141,7 @@ public class PublishDialogController
 		status.setVisible(true);
 		status.setText("Publishing...");
 
-		Publish task = new Publish(model_, classifier_, projectFolder_, dataFiles_, url.getText(), username.getText(), password.getText());
+		Publish task = new Publish(model_, classifier_, dataType_, projectFolder_, dataFiles_, url.getText(), username.getText(), password.getText());
 		task.setOnSucceeded((event) -> 
 		{
 			taskFinished(task);

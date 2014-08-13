@@ -55,6 +55,7 @@ public class Publish extends Task<Integer>
 
 	Model model_;
 	String classifier_;
+	String dataType_;
 	File projectFolder_;
 	List<File> dataFiles_;
 	String url_;
@@ -63,10 +64,11 @@ public class Publish extends Task<Integer>
 	
 	StringBuilder status_ = new StringBuilder();
 	
-	public Publish(Model model, String classifier, File projectFolder, List<File> dataFiles, String url, String username, String password) throws Exception
+	public Publish(Model model, String classifier, String dataType, File projectFolder, List<File> dataFiles, String url, String username, String password) throws Exception
 	{
 		model_ = model;
 		classifier_ = classifier;
+		dataType_ = dataType;
 		projectFolder_ = projectFolder;
 		dataFiles_ = dataFiles;
 		url_ = url;
@@ -205,7 +207,7 @@ public class Publish extends Task<Integer>
 		updateTitle("Creating Archive File");
 		updateStatus("Creating Archive File");
 		Zip zip = new Zip();
-		File zipFile = zip.createZipFile(model_, classifier_, projectFolder_, dataFiles_);
+		File zipFile = zip.createZipFile(model_, classifier_, dataType_, projectFolder_, dataFiles_);
 		log.info("Wrote " + zipFile);
 
 		File pomFile = new File(projectFolder_, "pom.xml");
