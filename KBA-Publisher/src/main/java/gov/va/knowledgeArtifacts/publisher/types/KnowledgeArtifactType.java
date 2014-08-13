@@ -29,12 +29,12 @@ public enum KnowledgeArtifactType
 	CDSKnowledgeArtifact("CDS Knowledge Artifact", "cds_ka"), RF2("Release Format 2", "RF2"), OWL("Web Ontology Language", "owl");
 	
 	private String niceName_;
-	private String classifier_;
+	private String type_;
 	
-	private KnowledgeArtifactType(String description, String classifier)
+	private KnowledgeArtifactType(String description, String type)
 	{
 		niceName_ = description;
-		classifier_ = classifier;
+		type_ = type;
 	}
 	
 	public String getNiceName()
@@ -42,9 +42,9 @@ public enum KnowledgeArtifactType
 		return niceName_;
 	}
 	
-	public String getClassifier()
+	public String getType()
 	{
-		return classifier_;
+		return type_;
 	}
 	
 	public static KnowledgeArtifactType parse(String value)
@@ -56,7 +56,7 @@ public enum KnowledgeArtifactType
 		for (KnowledgeArtifactType type : KnowledgeArtifactType.values())
 		{
 			if (value.toLowerCase().equals(type.name().toLowerCase()) || value.toLowerCase().equals(type.getNiceName().toLowerCase()) ||
-					value.toLowerCase().equals(type.getClassifier().toLowerCase()))
+					value.toLowerCase().equals(type.getType().toLowerCase()))
 			{
 				return type;
 			}

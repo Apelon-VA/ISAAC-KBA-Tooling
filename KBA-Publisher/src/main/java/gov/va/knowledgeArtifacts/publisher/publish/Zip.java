@@ -46,16 +46,22 @@ public class Zip
 	private static Logger log = LoggerFactory.getLogger(Zip.class);
 	ZipFile zf;
 	
-	public File createZipFile(Model model, String classifier, File projectFolder, List<File> dataFiles) throws ZipException, IOException
+	public File createZipFile(Model model, String classifier, String dataType, File projectFolder, List<File> dataFiles) throws ZipException, IOException
 	{
 		Path tempFolder = Files.createTempDirectory("KBAPublish-");
 		
-		zf = new ZipFile(new File(tempFolder.toFile(), model.getName() + "-" + model.getVersion() + "-" + classifier + ".zip"));
+		String classifierTemp = "";
+		if (classifier.trim().length() > 0)
+		{
+			classifierTemp = "-" + classifier.trim();
+		}
+		zf = new ZipFile(new File(tempFolder.toFile(), model.getName() + "-" + model.getVersion() + classifierTemp + "." + dataType + ".zip"));
 		ZipParameters zp = new ZipParameters();
 		zp.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_MAXIMUM);
 		zp.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
 		zp.setDefaultFolderPath(projectFolder.getAbsolutePath());
-		zp.setRootFolderInZip(model.getName() + "-" + model.getVersion() + "-" + classifier);
+		String rootFolder = model.getName() + "-" + model.getVersion() + classifierTemp + "." + dataType;
+		zp.setRootFolderInZip(rootFolder);
 		zp.setIncludeRootFolder(true);
 		for (File f : dataFiles)
 		{
@@ -79,7 +85,7 @@ public class Zip
 			String target = sf.getOutputDirectory();
 			target = target.replaceAll("\\$\\{artifactId\\}", model.getArtifactId());
 			target = target.replaceAll("\\$\\{groupId\\}", model.getGroupId());
-			zp.setRootFolderInZip(model.getName() + "-" + model.getVersion()+ "-" + classifier + "/" + target);
+			zp.setRootFolderInZip(rootFolder + "/" + target);
 			
 			if (sf.filter())
 			{

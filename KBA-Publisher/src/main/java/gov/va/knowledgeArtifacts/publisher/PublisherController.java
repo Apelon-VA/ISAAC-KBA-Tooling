@@ -81,6 +81,8 @@ import org.apache.maven.pom._4_0.Plugin;
 import org.apache.maven.pom._4_0.Plugin.Executions;
 import org.apache.maven.pom._4_0.PluginExecution;
 import org.apache.maven.pom._4_0.PluginExecution.Configuration;
+import org.apache.maven.pom._4_0.PluginExecution.Configuration.Artifacts;
+import org.apache.maven.pom._4_0.PluginExecution.Configuration.Artifacts.Artifact;
 import org.apache.maven.pom._4_0.PluginExecution.Configuration.Descriptors;
 import org.apache.maven.pom._4_0.PluginExecution.Goals;
 import org.slf4j.Logger;
@@ -104,6 +106,7 @@ public class PublisherController
 	@FXML private TextField orgUrl;
 	@FXML private Button addDataFile;
 	@FXML private TextField version;
+	@FXML private TextField classifier;
 	@FXML private TextField projectFolder;
 	@FXML private TextField url;
 	@FXML private Button addDataFolder;
@@ -401,17 +404,28 @@ public class PublisherController
 	private void save()
 	{
 		KnowledgeArtifactType type = KnowledgeArtifactType.parse(dataType.getValue());
+		
+		//The ID field is supposed to be used for the classifier.
+		//However, due to the way we are trying to hack maven - at this stage of the build, we need to also use the classifier field to distinguish 
+		//type - otherwise, maven will get confused when it tries to make the zip files - because the assembly code names the file simply using classifier + .zip.
+		//So, merge the classifier and type together into this field...
 
+		String classifierPlusType = "";
+		String typeText = "";
 		if (type == null)
 		{
-			assembly_.setId(dataType.getValue());
+			typeText = dataType.getValue();
 		}
 		else
 		{
-			assembly_.setId(type.getClassifier());
+			typeText = type.getType();
 		}
+		String classifierText = classifier.getText().trim();
+		classifierPlusType = classifierText + "." + typeText;
 		
-		assembly_.setBaseDirectory("${artifactId}-${version}-" + assembly_.getId());
+		assembly_.setId(classifierPlusType);
+		
+		assembly_.setBaseDirectory("${artifactId}-${version}" + (classifierText.length() > 0 ? "-" : "") + assembly_.getId());
 		
 		Formats formats = new Formats();
 		formats.getFormat().add("zip");
@@ -511,13 +525,17 @@ public class PublisherController
 		
 		Build build = new Build();
 		Plugins plugins = new Plugins();
+
+		//Assembly plugin section
 		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
 		plugin.setArtifactId("maven-assembly-plugin");
+		plugin.setVersion("2.4");
 		Executions executions = new Executions();
 		PluginExecution execution = new PluginExecution();
 		execution.setId("zip");
 		Goals goals = new Goals();
-		goals.getGoal().add("attached");
+		goals.getGoal().add("single");
 		execution.setGoals(goals);
 		execution.setPhase("package");
 		Configuration configuration = new Configuration();
@@ -525,11 +543,45 @@ public class PublisherController
 		Descriptors descriptors = new Descriptors();
 		descriptors.getDescriptor().add("${basedir}/src/assembly/assembly.xml");
 		configuration.setDescriptors(descriptors);
+		configuration.setAttach(false);  //don't attach these during build - because the type / classifier is mucked up (on purpose) we customize the attach below
+		configuration.setEncoding("UTF-8");
 
 		execution.setConfiguration(configuration);
 		executions.getExecution().add(execution);
+		
 		plugin.setExecutions(executions);
 		plugins.getPlugin().add(plugin);
+		
+		//attach artifacts section
+		plugin = new Plugin();
+		plugin.setGroupId("org.codehaus.mojo");
+		plugin.setArtifactId("build-helper-maven-plugin");
+		plugin.setVersion("1.8");
+		executions = new Executions();
+		execution = new PluginExecution();
+		execution.setId("attach-artifact");
+		goals = new Goals();
+		goals.getGoal().add("attach-artifact");
+		execution.setGoals(goals);
+		configuration = new Configuration();
+		
+		Artifacts artifacts = new Artifacts();
+		Artifact artifact = new Artifact();
+		artifact.setType(typeText + ".zip");
+		artifact.setFile("${project.build.directory}/${project.build.finalName}-" + classifierPlusType + ".zip");
+		if (classifierText.length() > 0)
+		{
+			artifact.setClassifier(classifierText);
+		}
+		artifacts.getArtifact().add(artifact);
+		configuration.setArtifacts(artifacts);
+
+		execution.setConfiguration(configuration);
+		executions.getExecution().add(execution);
+		
+		plugin.setExecutions(executions);
+		plugins.getPlugin().add(plugin);
+		
 		build.setPlugins(plugins);
 		model_.setBuild(build);
 		
@@ -568,28 +620,63 @@ public class PublisherController
 				orgName.setText(convertNull(model_.getOrganization().getName()));
 				orgUrl.setText(convertNull(model_.getOrganization().getUrl()));
 			}
-		}
-		catch (Exception e)
-		{
-			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog("There was an error reading the existing pom file.  You may continue"
-					+ " but the existing file will be completely overwritten upon save or publish", e);
-			model_ = new Model();
-		}
-		try
-		{
-			//TODO this mechanism of handling files won't cope well with absolute paths and jumping from one system to another...
-			assembly_ = AssemblyHandler.readOrCreateBlank(projectFolder_);
 			
-			KnowledgeArtifactType type = KnowledgeArtifactType.parse(assembly_.getId());
+			String readType = "";
+			String readClassifier = "";
+			
+			nastyLoops:
+			if (model_.getBuild() != null && model_.getBuild().getPlugins() != null)
+			{
+				for (Plugin p : model_.getBuild().getPlugins().getPlugin())
+				{
+					if (p.getArtifactId().equals("build-helper-maven-plugin"))
+					{
+						if (p.getExecutions() != null)
+						{
+							for (PluginExecution pe : p.getExecutions().getExecution())
+							{
+								if (pe.getConfiguration() != null && pe.getConfiguration().getArtifacts() != null)
+								{
+									for (Artifact a : pe.getConfiguration().getArtifacts().getArtifact())
+									{
+										readType = convertNull(a.getType());
+										if (readType.toLowerCase().endsWith(".zip"))
+										{
+											readType = readType.substring(0, readType.length() - 4);
+										}
+										readClassifier = a.getClassifier();
+										break nastyLoops;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			KnowledgeArtifactType type = KnowledgeArtifactType.parse(readType);
 			if (type != null)
 			{
 				dataType.getSelectionModel().select(type.getNiceName());
 			}
 			else
 			{
-				dataType.setValue(convertNull(assembly_.getId()));
+				dataType.setValue(convertNull(readType));
 			}
-
+			classifier.setText(convertNull(readClassifier));
+			
+		}
+		catch (Exception e)
+		{
+			AppContext.getServiceLocator().getService(CommonDialogsI.class).showErrorDialog("There was an error reading the existing pom file.  You may continue"
+					+ " but the existing file will be completely overwritten upon save or publish", e);
+			log.warn("Error Reading", e);
+			model_ = new Model();
+		}
+		try
+		{
+			//TODO this mechanism of handling files won't cope well with absolute paths and jumping from one system to another...
+			assembly_ = AssemblyHandler.readOrCreateBlank(projectFolder_);
 			dataFiles.getItems().clear();
 			FileSets fileSets = assembly_.getFileSets();
 			if (fileSets != null)
@@ -701,7 +788,9 @@ public class PublisherController
 			stage.getIcons().add(new Image("/images/silk-icons/src/main/resources/silk/16x16/package_go.png"));
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.initOwner(root.getScene().getWindow());
-			uc.finishInit(model_, assembly_.getId(), projectFolder_, dataFiles.getItems());
+			
+			KnowledgeArtifactType type = KnowledgeArtifactType.parse(dataType.getValue());
+			uc.finishInit(model_, classifier.getText(), (type == null ? dataType.getValue() : type.getType()), projectFolder_, dataFiles.getItems());
 			stage.sizeToScene();
 			stage.show();
 		}
@@ -791,8 +880,11 @@ public class PublisherController
 		sb.append("\r\n");
 		sb.append("Implementation-Vendor-Id: ${project.groupId}");
 		sb.append("\r\n");
-		sb.append("Implementation-Vendor: ${project.organization.name}");
-		sb.append("\r\n");
+		if (orgName.getText().length() > 0)
+		{
+			sb.append("Implementation-Vendor: ${project.organization.name}");
+			sb.append("\r\n");
+		}
 		
 		java.nio.file.Files.write(new File(new File(new File(projectFolder_, "src"), "assembly"), "MANIFEST.MF").toPath(), sb.toString().getBytes(), 
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);

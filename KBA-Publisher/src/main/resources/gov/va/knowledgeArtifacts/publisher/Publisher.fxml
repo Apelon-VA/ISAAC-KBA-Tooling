@@ -89,6 +89,7 @@
 												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
 												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
 												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+												<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
 											</rowConstraints>
 											<children>
 												<Label text="Group ID" GridPane.rowIndex="4" />
@@ -104,12 +105,14 @@
 												<Label text="Description" GridPane.rowIndex="2" />
 												<TextArea fx:id="description" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="100.0" prefHeight="100.0"
 													wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-												<Label text="Organization Name" GridPane.rowIndex="7" />
-												<Label text="Organization URL" GridPane.rowIndex="8" />
+												<Label text="Organization Name" GridPane.rowIndex="8" />
+												<Label text="Organization URL" GridPane.rowIndex="9" />
 												<Label text="URL" GridPane.rowIndex="3" />
+												<Label text="Classifier" GridPane.rowIndex="7" />
 												<TextField fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-												<TextField fx:id="orgName" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-												<TextField fx:id="orgUrl" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+												<TextField fx:id="orgName" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+												<TextField fx:id="orgUrl" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+												<TextField fx:id="classifier" GridPane.columnIndex="1" GridPane.rowIndex="7" />
 											</children>
 											<padding>
 												<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

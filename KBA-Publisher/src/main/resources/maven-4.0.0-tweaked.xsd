@@ -1223,6 +1223,23 @@
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
+            <xs:element name="attach" minOccurs="0" type="xs:boolean"/>
+            <xs:element name="encoding" minOccurs="0" type="xs:string"/>
+            <xs:element name="artifacts" minOccurs="0">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="artifact" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="type" minOccurs="1" maxOccurs="1" type="xs:string"/>
+                        <xs:element name="file" minOccurs="1" maxOccurs="1" type="xs:string"/>
+                        <xs:element name="classifier" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
             <!-- End of Dan Hack -->
           </xs:sequence>
         </xs:complexType>
