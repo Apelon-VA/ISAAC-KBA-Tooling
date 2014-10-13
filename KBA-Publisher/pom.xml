@@ -9,6 +9,17 @@
 
 	<name>KBA-Publisher</name>
 
+	<description>
+		A GUI utility for publishing various artifacts in the ISAAC Knowledge Base Artifact format
+	</description>
+
+	<scm>
+		<connection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</connection>
+		<developerConnection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</developerConnection>
+		<url>https://github.com/Apelon-VA/ISAAC-KBA-Tooling</url>
+		<tag>master</tag>
+	</scm>
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
