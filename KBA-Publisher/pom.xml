@@ -17,7 +17,7 @@
 		<connection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</connection>
 		<developerConnection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</developerConnection>
 		<url>https://github.com/Apelon-VA/ISAAC-KBA-Tooling</url>
-		<tag>develop</tag>
+		<tag>develop-force-conflict</tag>
 	</scm>
 
 	<licenses>
