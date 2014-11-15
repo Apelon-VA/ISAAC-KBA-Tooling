@@ -103,7 +103,7 @@ public class PublishDialogController
 		};
 		
 		StackPane sp = ErrorMarkerUtils.swapGridPaneComponents(url, new StackPane(), (GridPane)url.getParent());
-		ErrorMarkerUtils.setupErrorMarker(url, sp, urlValid.getReasonWhyInvalid());
+		ErrorMarkerUtils.setupErrorMarker(url, sp, urlValid);
 		
 		publishButton.disableProperty().bind(urlValid.not());
 		

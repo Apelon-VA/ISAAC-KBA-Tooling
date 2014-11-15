@@ -268,7 +268,7 @@ public class PublisherController
 			}
 		};
 		StackPane sp = ErrorMarkerUtils.swapGridPaneComponents(projectFolder, new StackPane(), (GridPane)projectFolder.getParent());
-		ErrorMarkerUtils.setupErrorMarker(projectFolder, sp, projectFolderValid.getReasonWhyInvalid());
+		ErrorMarkerUtils.setupErrorMarker(projectFolder, sp, projectFolderValid);
 		
 		dataFilesValid = new UpdateableBooleanBinding()
 		{
@@ -295,7 +295,7 @@ public class PublisherController
 			}
 		};
 		sp = ErrorMarkerUtils.swapGridPaneComponents(dataFiles, new StackPane(), (GridPane)dataFiles.getParent());
-		ErrorMarkerUtils.setupErrorMarker(dataFiles, sp, dataFilesValid.getReasonWhyInvalid());
+		ErrorMarkerUtils.setupErrorMarker(dataFiles, sp, dataFilesValid);
 		
 		dataTypeValid = new UpdateableBooleanBinding()
 		{
@@ -322,7 +322,7 @@ public class PublisherController
 			}
 		};
 		sp = ErrorMarkerUtils.swapGridPaneComponents(dataType, new StackPane(), (GridPane)dataType.getParent());
-		ErrorMarkerUtils.setupErrorMarker(dataType, sp, dataTypeValid.getReasonWhyInvalid());
+		ErrorMarkerUtils.setupErrorMarker(dataType, sp, dataTypeValid);
 		
 		nameValid = setupSimpleValidator(name, "The Name field is required");
 		descriptionValid = setupSimpleValidator(description, "The Description field is required");
@@ -838,7 +838,7 @@ public class PublisherController
 		};
 		
 		StackPane sp = ErrorMarkerUtils.swapGridPaneComponents(tic, new StackPane(), (GridPane)tic.getParent());
-		ErrorMarkerUtils.setupErrorMarker(tic, sp, ubb.getReasonWhyInvalid());
+		ErrorMarkerUtils.setupErrorMarker(tic, sp, ubb);
 		return ubb;
 	}
 	
