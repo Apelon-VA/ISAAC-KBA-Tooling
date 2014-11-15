@@ -16,7 +16,7 @@
 		<connection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</connection>
 		<developerConnection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</developerConnection>
 		<url>https://github.com/Apelon-VA/ISAAC-KBA-Tooling</url>
-		<tag>master(conflict)</tag>
+		<tag>master</tag>
 	</scm>
 
 	<licenses>
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>gov.va.isaac.modules</groupId>
 			<artifactId>gui-util</artifactId>
-			<version>1.0-Sprint_14</version>
+			<version>1.8-Release_01</version>
 		</dependency>
 
 		<dependency>
