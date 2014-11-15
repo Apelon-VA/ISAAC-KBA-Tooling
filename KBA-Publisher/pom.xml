@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>gov.va.isaac.modules</groupId>
 			<artifactId>gui-util</artifactId>
-			<version>1.0-Sprint_14</version>
+			<version>1.8-Release_01</version>
 		</dependency>
 
 		<dependency>

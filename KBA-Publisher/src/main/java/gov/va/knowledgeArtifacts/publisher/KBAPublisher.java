@@ -21,7 +21,6 @@ package gov.va.knowledgeArtifacts.publisher;
 import gov.va.isaac.AppContext;
 import gov.va.isaac.interfaces.gui.ApplicationWindowI;
 import gov.va.isaac.interfaces.gui.views.DockedViewI;
-import gov.va.isaac.interfaces.utility.ShutdownBroadcastListenerI;
 import java.io.IOException;
 import java.net.URL;
 import javafx.application.Application;
@@ -79,19 +78,19 @@ public class KBAPublisher extends Application implements ApplicationWindowI
 	}
 
 	/**
-	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#registerShutdownListener(gov.va.isaac.interfaces.utility.ShutdownBroadcastListenerI)
+	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#ensureDockedViewIsVisble(gov.va.isaac.interfaces.gui.views.DockedViewI)
 	 */
 	@Override
-	public void registerShutdownListener(ShutdownBroadcastListenerI listener)
+	public void ensureDockedViewIsVisble(DockedViewI view)
 	{
 		throw new RuntimeException("Not Implemented");
 	}
 
 	/**
-	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#ensureDockedViewIsVisble(gov.va.isaac.interfaces.gui.views.DockedViewI)
+	 * @see gov.va.isaac.interfaces.gui.ApplicationWindowI#browseURL(java.lang.String)
 	 */
 	@Override
-	public void ensureDockedViewIsVisble(DockedViewI view)
+	public void browseURL(String arg0)
 	{
 		throw new RuntimeException("Not Implemented");
 	}
