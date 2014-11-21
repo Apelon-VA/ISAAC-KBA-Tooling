@@ -16,7 +16,7 @@
 		<connection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</connection>
 		<developerConnection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</developerConnection>
 		<url>https://github.com/Apelon-VA/ISAAC-KBA-Tooling</url>
-		<tag>master</tag>
+		<tag>develop</tag>
 	</scm>
 
 	<licenses>
