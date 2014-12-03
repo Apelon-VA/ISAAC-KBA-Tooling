@@ -13,10 +13,7 @@
 	</description>
 
 	<scm>
-		<connection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</connection>
-		<developerConnection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</developerConnection>
 		<url>https://github.com/Apelon-VA/ISAAC-KBA-Tooling</url>
-		<tag>develop</tag>
 	</scm>
 
 	<licenses>
