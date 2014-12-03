@@ -3,7 +3,7 @@
 
 	<groupId>gov.va.isaac</groupId>
 	<artifactId>KBA-Publisher</artifactId>
-	<version>1.1-SNAPSHOT</version>
+	<version>Release_1.0.3</version>
 	<packaging>jar</packaging>
 
 	<name>KBA-Publisher</name>
@@ -16,7 +16,7 @@
 		<connection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</connection>
 		<developerConnection>scm:git:git@github.com:Apelon-VA/ISAAC-KBA-Tooling.git</developerConnection>
 		<url>https://github.com/Apelon-VA/ISAAC-KBA-Tooling</url>
-		<tag>master</tag>
+		<tag>develop</tag>
 	</scm>
 
 	<licenses>
@@ -137,7 +137,7 @@
 				</executions>
 			</plugin>
 			
-			<plugin>
+			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.5.1</version>
@@ -148,10 +148,31 @@
 							<goal>perform</goal>
 						</goals>
 						<configuration>
-							<pomFileName>KBA-Publisher/pom.xml</pomFileName>  <!-- Yes, maven really can't figure out where it is.... -->
+							<pomFileName>KBA-Publisher/pom.xml</pomFileName>  <!- - Yes, maven really can't figure out where it is.... - ->
 						</configuration>
 					</execution>
 				</executions>
+			</plugin-->
+			
+			<plugin>
+				<groupId>external.atlassian.jgitflow</groupId>
+				<artifactId>jgitflow-maven-plugin</artifactId>
+				<version>1.0-m4.3</version>
+				<configuration>
+					<pushReleases>false</pushReleases>
+				<noDeploy>true</noDeploy>
+			<noTag>true</noTag>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<scmCommentPrefix>[jgitflow-plugin]</scmCommentPrefix>
+					<enableSshAgent>true</enableSshAgent>
+					<flowInitContext>
+						<masterBranchName>master</masterBranchName>
+						<developBranchName>develop</developBranchName>
+						<featureBranchPrefix>feature-</featureBranchPrefix>
+						<releaseBranchPrefix>release-</releaseBranchPrefix>
+						<hotfixBranchPrefix>hotfix-</hotfixBranchPrefix>
+					</flowInitContext>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
