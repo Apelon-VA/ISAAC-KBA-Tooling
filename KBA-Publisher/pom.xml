@@ -3,7 +3,7 @@
 
 	<groupId>gov.va.isaac</groupId>
 	<artifactId>KBA-Publisher</artifactId>
-	<version>1.1.1-SNAPSHOT</version>
+	<version>Release_1.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>KBA-Publisher</name>
